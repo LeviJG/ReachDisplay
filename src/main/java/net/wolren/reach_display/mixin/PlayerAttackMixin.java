@@ -37,4 +37,3 @@ public abstract class PlayerAttackMixin {
         return Math.max(target, min);
     }
 }
-

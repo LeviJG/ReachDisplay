@@ -4,6 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.hit.EntityHitResult;
@@ -34,7 +35,7 @@ public abstract class InGameHudMixin {
     public abstract TextRenderer getTextRenderer();
 
     @Inject(at = @At("TAIL"), method = "render")
-    public void render(DrawContext context, float tickDelta, CallbackInfo ci) {
+    public void render(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         if (!DisplayConfig.enabled) return;
 
         PlayerEntity player = client.player;
