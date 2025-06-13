@@ -14,7 +14,7 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "distance", name = "Enable Distance Display")
     public static boolean distanceEnable = true;
 
-    @Comment(category = "distance") public static Comment spacer1;
+    //@Comment(category = "distance") public static Comment spacer1;
 
     @Entry(category = "distance", name = "Distance Scale", isSlider = true, min = 0.1f, max = 5f, precision = 10)
     public static float distanceScale = 1.0f;
@@ -39,7 +39,7 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "3hitDistance", name = "Enable Hit Distance Display")
     public static boolean hitDistanceEnable = true;
 
-    @Comment(category = "3hitDistance") public static Comment spacer2;
+    //@Comment(category = "3hitDistance") public static Comment spacer2;
 
     @Entry(category = "3hitDistance", name = "Hit Distance Scale", isSlider = true, min = 0.1f, max = 5f, precision = 10)
     public static float hitDistanceScale = 1.0f;
@@ -64,7 +64,7 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "averageHitDistance", name = "Enable Average Hit Distance")
     public static boolean averageHitDistanceEnable = false;
 
-    @Comment(category = "averageHitDistance") public static Comment spacer3;
+    //@Comment(category = "averageHitDistance") public static Comment spacer3;
 
     @Entry(category = "averageHitDistance", name = "Average Hit Mode")
     public static AverageModeEnum averageHitMode = AverageModeEnum.LOCAL_AVERAGE;
@@ -76,7 +76,7 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "averageHitDistance", name = "Number Of Hits Counted", min = 2)
     public static int averageNumberOfHitsCounted = 3;
 
-    @Comment(category = "averageHitDistance") public static Comment spacer4;
+    //@Comment(category = "averageHitDistance") public static Comment spacer4;
 
     @Entry(category = "averageHitDistance", name = "Average Hit Distance Scale", isSlider = true, min = 0.1f, max = 5f, precision = 10)
     public static float averageHitDistanceScale = 1.0f;
