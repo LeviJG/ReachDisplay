@@ -98,11 +98,11 @@ public abstract class InGameHudMixin {
 
     @Unique
     private static int parseColorWithDefault(String colorHex) {
-        if (colorHex.isEmpty()) return 16777215;
+        if (colorHex.isEmpty()) return 0xFFFFFFFF;
         try {
-            return Integer.parseInt(colorHex, 16);
+            return (int) Long.parseLong(colorHex, 16);
         } catch (NumberFormatException e) {
-            return 16777215;
+            return 0xFFFFFFFF;
         }
     }
 
@@ -144,9 +144,9 @@ public abstract class InGameHudMixin {
 
     @Unique
     private void renderText(DrawContext context, String text, float x, float y, int color, boolean shadow, float scale) {
-        context.getMatrices().scale(scale, scale, scale);
+        context.getMatrices().scale(scale, scale);
         context.drawText(this.getTextRenderer(), text, (int) (x * (1 / scale)), (int) (y * (1 / scale)), color, shadow);
-        context.getMatrices().scale((1 / scale), (1 / scale), (1 / scale));
+        context.getMatrices().scale((1 / scale), (1 / scale));
     }
 
     @Unique

@@ -13,7 +13,7 @@ public class SharedData {
     private static SharedData instance;
     private double localAverageDistance = 0;
     private int localAverageHitCount = 0;
-    private Queue<Double> lastHitsDistance = new LinkedList<>();
+    private final Queue<Double> lastHitsDistance = new LinkedList<>();
     private double averageDistance = 0;
     private static final String GLOBAL_AVERAGE_FILE_NAME = "global_average_hits.txt";
     private double distance;

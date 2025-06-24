@@ -6,11 +6,15 @@ plugins {
 version = project.mod_version
 group = project.maven_group
 
-base {
-    archivesName = project.archives_base_name
+tasks.named('jar', Jar) {
+    archiveBaseName.set("ReachDisplay")
+    from("LICENSE") {
+        rename { "${it}_${archiveBaseName.get()}" }
+    }
 }
 
 repositories {
+    mavenCentral()
     maven {
         url = "https://api.modrinth.com/maven"
     }
@@ -32,7 +36,7 @@ processResources {
     inputs.property "version", project.version
     inputs.property "minecraft_version", project.minecraft_version
     inputs.property "loader_version", project.loader_version
-    filteringCharset "UTF-8"
+    filteringCharset="UTF-8"
 
     filesMatching("fabric.mod.json") {
         expand "version": project.version,
@@ -64,16 +68,10 @@ java {
     withSourcesJar()
 }
 
-jar {
-    from("LICENSE") {
-        rename { "${it}_${project.archivesBaseName}"}
-    }
-}
-
 // configure the maven publication
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        create("mavenJava", MavenPublication) {
             from components.java
         }
     }
