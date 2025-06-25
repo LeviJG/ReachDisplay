@@ -56,6 +56,9 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "3hitDistance", name = "Hit Distance Color", isColor = true)
     public static String hitDistanceColor = "FFFFFF";
 
+    @Entry(category = "3hitDistance", name = "Hit Distance Opacity", isSlider = true, min = 0.0f, max = 1.0f)
+    public static  float hitDistanceOpacity = 1.0f;
+
     @Entry(category = "3hitDistance", name = "Hit Distance Text Shadow")
     public static boolean hitDistanceShadow = false;
 
@@ -91,7 +94,10 @@ public class DisplayConfig extends MidnightConfig {
     public static int averageHitYOffset = -100;
 
     @Entry(category = "averageHitDistance", name = "Average Hit Distance Color", isColor = true)
-    public static String averageHitDistanceColor = "FFFFFFFF";
+    public static String averageHitDistanceColor = "FFFFFF";
+
+    @Entry(category = "averageHitDistance", name = "Average Hit Distance Opacity", isSlider = true, min = 0.0f, max = 1.0f)
+    public static  float averageHitDistanceOpacity = 1.0f;
 
     @Entry(category = "averageHitDistance", name = "Average Hit Distance Text Shadow")
     public static boolean averageHitDistanceShadow = false;

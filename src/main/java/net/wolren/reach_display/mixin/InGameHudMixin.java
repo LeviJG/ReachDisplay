@@ -52,10 +52,14 @@ public abstract class InGameHudMixin {
 
                     String colorHex = DisplayConfig.distanceColor;
                     int colorInt = parseColorWithDefault(colorHex);
+                    float opacityScale = DisplayConfig.distanceOpacity;
+                    int ARGBColorInt = parseARGBColorWithOpacity(opacityScale, colorInt);
                     boolean shadow = DisplayConfig.distanceShadow;
                     float scale = DisplayConfig.distanceScale;
 
-                    renderText(context, displayString, getDistance(displayString).x, getDistance(displayString).y, colorInt, shadow, scale);
+
+
+                    renderText(context, displayString, getDistance(displayString).x, getDistance(displayString).y, ARGBColorInt, shadow, scale);
                 }
             }
         }
@@ -69,10 +73,12 @@ public abstract class InGameHudMixin {
 
                     String colorHex = DisplayConfig.hitDistanceColor;
                     int colorInt = parseColorWithDefault(colorHex);
+                    float opacityScale = DisplayConfig.hitDistanceOpacity;
+                    int ARGBColorInt = parseARGBColorWithOpacity(opacityScale, colorInt);
                     boolean shadow = DisplayConfig.hitDistanceShadow;
                     float scale = DisplayConfig.hitDistanceScale;
 
-                    renderText(context, displayString, getHitDistance(displayString).x, getHitDistance(displayString).y, colorInt, shadow, scale);
+                    renderText(context, displayString, getHitDistance(displayString).x, getHitDistance(displayString).y, ARGBColorInt, shadow, scale);
                 }
 
             }
@@ -82,28 +88,36 @@ public abstract class InGameHudMixin {
             Entity entity = SharedData.getInstance().getEntity();
             if (entity != null) {
                 if (DisplayConfig.showPlayers && !entity.isPlayer()) return;
-                else {
-                    String displayString = getAverageHitDisplayString(SharedData.getInstance().getAverageDistance());
 
-                    String colorHex = DisplayConfig.averageHitDistanceColor;
-                    int colorInt = parseColorWithDefault(colorHex);
-                    boolean shadow = DisplayConfig.averageHitDistanceShadow;
-                    float scale = DisplayConfig.averageHitDistanceScale;
+                String displayString = getAverageHitDisplayString(SharedData.getInstance().getAverageDistance());
 
-                    renderText(context, displayString, getAverageHitDistance(displayString).x, getAverageHitDistance(displayString).y, colorInt, shadow, scale);
-                }
+                String colorHex = DisplayConfig.averageHitDistanceColor;
+                int colorInt = parseColorWithDefault(colorHex);
+                float opacityScale = DisplayConfig.averageHitDistanceOpacity;
+                int ARGBColorInt = parseARGBColorWithOpacity(opacityScale, colorInt);
+                boolean shadow = DisplayConfig.averageHitDistanceShadow;
+                float scale = DisplayConfig.averageHitDistanceScale;
+
+                renderText(context, displayString, getAverageHitDistance(displayString).x, getAverageHitDistance(displayString).y, ARGBColorInt, shadow, scale);
+
             }
         }
     }
 
     @Unique
     private static int parseColorWithDefault(String colorHex) {
-        if (colorHex.isEmpty()) return 0xFFFFFFFF;
+        if (colorHex.isEmpty()) return 0xFFFFFF;
         try {
             return (int) Long.parseLong(colorHex, 16);
         } catch (NumberFormatException e) {
-            return 0xFFFFFFFF;
+            return 0xFFFFFF;
         }
+    }
+
+    @Unique
+    private  static  int parseARGBColorWithOpacity(float opacityScale, int colorInt){
+        int alpha = (int)(opacityScale * 255) & 0xFF;
+        return (alpha << 24) | (colorInt & 0xFFFFFF);
     }
 
     @Unique
