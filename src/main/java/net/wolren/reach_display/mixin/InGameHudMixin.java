@@ -140,20 +140,22 @@ public abstract class InGameHudMixin {
 
     @Unique
     private String getDisplayString(PlayerEntity player, Entity targetEntity) {
-        double distance = player.getEyePos().distanceTo(closestPointToBox(player.getEyePos(), targetEntity.getBoundingBox()));
+        HitResult result = client.crosshairTarget;
 
+        if (!(result instanceof EntityHitResult entityHit) || entityHit.getEntity() != targetEntity) return "";
+        Vec3d eyePos = player.getEyePos();
+        Vec3d hitPos = entityHit.getPos();
+
+        double distance = eyePos.distanceTo(hitPos);
         int decimalPlaces = DisplayConfig.distanceDecimalPlaces;
         DecimalFormat df = new DecimalFormat("0." + "0".repeat(decimalPlaces));
         df.setRoundingMode(RoundingMode.DOWN);
 
-        if (player.isCreative() && distance <= 5.00) {
-            return df.format(distance);
-        } else if (player.isSpectator()) {
-            return "";
-        } else if (distance <= 3.00) {
-            return df.format(distance);
-        }
-        return "";
+        double maxReach = player.isCreative() ? 5.0D : 3.0D;
+        if (player.isSpectator()) return "";
+        if (distance > maxReach) return "";
+
+        return df.format(distance);
     }
 
     @Unique
