@@ -1,39 +1,36 @@
 package net.wolren.reach_display.mixin;
 
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.Box;
+import net.minecraft.util.hit.EntityHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 import net.wolren.reach_display.data.SharedData;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(PlayerEntity.class)
+@Mixin(ClientPlayerInteractionManager.class)
 public abstract class PlayerAttackMixin {
-    @Inject(method = "attack(Lnet/minecraft/entity/Entity;)V", at = @At("HEAD"))
-    private void onAttack(Entity target, CallbackInfo ci) {
-        if (target instanceof LivingEntity) {
-            PlayerEntity player = (PlayerEntity) (Object) this;
-            double distance = player.getEyePos().distanceTo(closestPointToBox(player.getEyePos(), target.getBoundingBox()));
-            SharedData.getInstance().setDistanceAndTarget(distance, target);
-            SharedData.getInstance().addDistanceToAverage(distance);
-        }
-    }
 
-    @Unique
-    public Vec3d closestPointToBox(Vec3d start, Box box) {
-        return new Vec3d(coerceIn(start.x, box.minX, box.maxX), coerceIn(start.y, box.minY, box.maxY), coerceIn(start.z, box.minZ, box.maxZ));
-    }
+    @Inject(method = "attackEntity(Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/entity/Entity;)V", at = @At("HEAD"))
+    private void onAttack(net.minecraft.entity.player.PlayerEntity player, Entity target, CallbackInfo ci) {
+        MinecraftClient client = MinecraftClient.getInstance();
 
-    @Unique
-    public double coerceIn(double target, double min, double max) {
-        if (target > max) {
-            return max;
-        }
-        return Math.max(target, min);
+        // Get the actual ray that determined the hit
+        HitResult result = client.crosshairTarget;
+        if (!(result instanceof EntityHitResult hitResult)) return;
+
+        Entity hitEntity = hitResult.getEntity();
+        if (hitEntity == null || !hitEntity.equals(target)) return;
+
+        Vec3d eyePos = player.getEyePos();
+        Vec3d hitPos = hitResult.getPos();
+        double rayDistance = eyePos.distanceTo(hitPos);
+
+        SharedData.getInstance().setDistanceAndTarget(rayDistance, target);
+        SharedData.getInstance().addDistanceToAverage(rayDistance);
     }
 }
