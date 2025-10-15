@@ -91,7 +91,7 @@ public class DisplayConfig extends MidnightConfig {
     public static int averageHitXOffset = 0;
 
     @Entry(category = "averageHitDistance", name = "Average Hit Distance Y Offset", min = Integer.MIN_VALUE, max = Integer.MAX_VALUE)
-    public static int averageHitYOffset = -100;
+    public static int averageHitYOffset = -80;
 
     @Entry(category = "averageHitDistance", name = "Average Hit Distance Color", isColor = true)
     public static String averageHitDistanceColor = "FFFFFF";
