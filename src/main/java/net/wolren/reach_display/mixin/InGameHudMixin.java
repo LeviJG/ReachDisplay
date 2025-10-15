@@ -166,19 +166,6 @@ public abstract class InGameHudMixin {
     }
 
     @Unique
-    public Vec3d closestPointToBox(Vec3d start, Box box) {
-        return new Vec3d(coerceIn(start.x, box.minX, box.maxX), coerceIn(start.y, box.minY, box.maxY), coerceIn(start.z, box.minZ, box.maxZ));
-    }
-
-    @Unique
-    public double coerceIn(double target, double min, double max) {
-        if (target > max) {
-            return max;
-        }
-        return Math.max(target, min);
-    }
-
-    @Unique
     public Vec2f getDistance(String displayString) {
         float y = (client.getWindow().getScaledHeight() / 2.0F) - DisplayConfig.yOffset;
         float x = (client.getWindow().getScaledWidth() / 2.0F - ((client.textRenderer.getWidth(displayString) / 2.0F) * DisplayConfig.distanceScale)) - DisplayConfig.xOffset;
