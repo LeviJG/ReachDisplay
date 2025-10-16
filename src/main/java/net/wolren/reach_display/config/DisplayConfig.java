@@ -37,6 +37,13 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "distance", name = "Distance Decimal Places")
     public static int distanceDecimalPlaces = 2;
 
+    public enum DistanceCalculationMethod {
+        RAY_HIT_POINT,
+        CLOSEST_POINT,
+    }
+    @Entry(category = "distance", name = "Distance Calculation Method")
+    public static DistanceCalculationMethod distanceCalculationMethod = DistanceCalculationMethod.CLOSEST_POINT;
+
 
 
     @Entry(category = "3hitDistance", name = "Enable Hit Distance Display")
@@ -64,6 +71,9 @@ public class DisplayConfig extends MidnightConfig {
 
     @Entry(category = "3hitDistance", name = "Hit Distance Decimal Places")
     public static int hitDistanceDecimalPlaces = 2;
+
+    @Entry(category = "3hitDistance", name = "Hit Distance Calculation Method")
+    public static DistanceCalculationMethod hitDistanceCalculationMethod = DistanceCalculationMethod.CLOSEST_POINT;
 
 
 

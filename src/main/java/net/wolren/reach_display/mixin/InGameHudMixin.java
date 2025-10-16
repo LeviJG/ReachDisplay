@@ -9,6 +9,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 import net.wolren.reach_display.config.DisplayConfig;
@@ -20,7 +21,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
@@ -139,23 +139,39 @@ public abstract class InGameHudMixin {
 
     @Unique
     private String getDisplayString(PlayerEntity player, Entity targetEntity) {
-        HitResult result = client.crosshairTarget;
+        DisplayConfig.DistanceCalculationMethod distanceCalculationMethod = DisplayConfig.hitDistanceCalculationMethod;
 
-        if (!(result instanceof EntityHitResult entityHit) || entityHit.getEntity() != targetEntity) return "";
-        Vec3d eyePos = player.getEyePos();
-        Vec3d hitPos = entityHit.getPos();
+        if (player.isSpectator()) return "";
 
-        double distance = eyePos.distanceTo(hitPos);
         int decimalPlaces = DisplayConfig.distanceDecimalPlaces;
         DecimalFormat df = new DecimalFormat("0." + "0".repeat(decimalPlaces));
         df.setRoundingMode(RoundingMode.DOWN);
 
-        double maxReach = player.isCreative() ? 5.0D : 3.0D;
-        if (player.isSpectator()) return "";
-        if (distance > maxReach) return "";
+        double distance;
+        Vec3d eyePos = player.getEyePos();
 
+        if (distanceCalculationMethod == DisplayConfig.DistanceCalculationMethod.RAY_HIT_POINT) {
+            HitResult result = client.crosshairTarget;
+            if (!(result instanceof EntityHitResult entityHit) || entityHit.getEntity() != targetEntity) return "";
+
+            Vec3d hitPos = entityHit.getPos();
+            distance = eyePos.distanceTo(hitPos);
+
+            double maxReach = player.isCreative() ? 5.0D : 3.0D;
+            if (distance > maxReach) return "";
+        } else{
+            Box box = targetEntity.getBoundingBox();
+
+            double closestX = Math.max(box.minX, Math.min(eyePos.x, box.maxX));
+            double closestY = Math.max(box.minY, Math.min(eyePos.y, box.maxY));
+            double closestZ = Math.max(box.minZ, Math.min(eyePos.z, box.maxZ));
+
+            Vec3d closestPoint = new Vec3d(closestX, closestY, closestZ);
+            distance = eyePos.distanceTo(closestPoint);
+        }
         return df.format(distance);
     }
+
 
     @Unique
     private void renderText(DrawContext context, String text, float x, float y, int color, boolean shadow, float scale) {
