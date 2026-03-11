@@ -7,7 +7,7 @@
   ],
   "client": [
     "PlayerAttackMixin",
-    "InGameHudMixin"
+    "GuiMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,7 +1,7 @@
 package net.wolren.reach_display.data;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.Entity;
+import net.minecraft.world.entity.Entity;
 import net.wolren.reach_display.config.DisplayConfig;
 
 import java.io.*;

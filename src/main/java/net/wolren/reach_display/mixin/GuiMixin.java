@@ -1,17 +1,17 @@
 package net.wolren.reach_display.mixin;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec2f;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec2;
+import net.minecraft.world.phys.Vec3;
 import net.wolren.reach_display.config.DisplayConfig;
 import net.wolren.reach_display.data.SharedData;
 import org.spongepowered.asm.mixin.Final;
@@ -24,28 +24,28 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-@Mixin(InGameHud.class)
-public abstract class InGameHudMixin {
+@Mixin(Gui.class)
+public abstract class GuiMixin {
     @Shadow
     @Final
-    private MinecraftClient client = MinecraftClient.getInstance();
+    private Minecraft minecraft = Minecraft.getInstance();
 
     @Shadow
-    public abstract TextRenderer getTextRenderer();
+    public abstract Font getFont();
 
     @Inject(at = @At("TAIL"), method = "render")
-    public void render(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+    public void render(GuiGraphics context, DeltaTracker tickCounter, CallbackInfo ci) {
         if (!DisplayConfig.enabled) return;
 
-        PlayerEntity player = client.player;
-        HitResult target = client.crosshairTarget;
+        Player player = minecraft.player;
+        HitResult target = minecraft.hitResult;
 
         if (player == null || target == null) return;
 
         if (target.getType() == HitResult.Type.ENTITY && DisplayConfig.distanceEnable) {
             Entity targetEntity = ((EntityHitResult) target).getEntity();
             if (!targetEntity.isInvisibleTo(player)) {
-                if (DisplayConfig.showPlayers && !targetEntity.isPlayer()) return;
+                if (DisplayConfig.showPlayers && !targetEntity.isAlwaysTicking()) return;
                 else {
                     String displayString = getDisplayString(player, targetEntity);
 
@@ -66,7 +66,7 @@ public abstract class InGameHudMixin {
         if (DisplayConfig.hitDistanceEnable) {
             Entity entity = SharedData.getInstance().getEntity();
             if (entity != null) {
-                if (DisplayConfig.showPlayers && !entity.isPlayer()) return;
+                if (DisplayConfig.showPlayers && !entity.isAlwaysTicking()) return;
                 else {
                     String displayString = getHitDisplayString(SharedData.getInstance().getDistance());
 
@@ -86,7 +86,7 @@ public abstract class InGameHudMixin {
         if (DisplayConfig.averageHitDistanceEnable) {
             Entity entity = SharedData.getInstance().getEntity();
             if (entity != null) {
-                if (DisplayConfig.showPlayers && !entity.isPlayer()) return;
+                if (DisplayConfig.showPlayers && !entity.isAlwaysTicking()) return;
 
                 String displayString = getAverageHitDisplayString(SharedData.getInstance().getAverageDistance());
 
@@ -138,7 +138,7 @@ public abstract class InGameHudMixin {
     }
 
     @Unique
-    private String getDisplayString(PlayerEntity player, Entity targetEntity) {
+    private String getDisplayString(Player player, Entity targetEntity) {
         DisplayConfig.DistanceCalculationMethod distanceCalculationMethod = DisplayConfig.hitDistanceCalculationMethod;
 
         if (player.isSpectator()) return "";
@@ -148,25 +148,25 @@ public abstract class InGameHudMixin {
         df.setRoundingMode(RoundingMode.DOWN);
 
         double distance;
-        Vec3d eyePos = player.getEyePos();
+        Vec3 eyePos = player.getEyePosition();
 
         if (distanceCalculationMethod == DisplayConfig.DistanceCalculationMethod.RAY_HIT_POINT) {
-            HitResult result = client.crosshairTarget;
+            HitResult result = minecraft.hitResult;
             if (!(result instanceof EntityHitResult entityHit) || entityHit.getEntity() != targetEntity) return "";
 
-            Vec3d hitPos = entityHit.getPos();
+            Vec3 hitPos = entityHit.getLocation();
             distance = eyePos.distanceTo(hitPos);
 
             double maxReach = player.isCreative() ? 5.0D : 3.0D;
             if (distance > maxReach) return "";
         } else{
-            Box box = targetEntity.getBoundingBox();
+            AABB box = targetEntity.getBoundingBox();
 
             double closestX = Math.max(box.minX, Math.min(eyePos.x, box.maxX));
             double closestY = Math.max(box.minY, Math.min(eyePos.y, box.maxY));
             double closestZ = Math.max(box.minZ, Math.min(eyePos.z, box.maxZ));
 
-            Vec3d closestPoint = new Vec3d(closestX, closestY, closestZ);
+            Vec3 closestPoint = new Vec3(closestX, closestY, closestZ);
             distance = eyePos.distanceTo(closestPoint);
         }
         return df.format(distance);
@@ -174,30 +174,30 @@ public abstract class InGameHudMixin {
 
 
     @Unique
-    private void renderText(DrawContext context, String text, float x, float y, int color, boolean shadow, float scale) {
-        context.getMatrices().scale(scale, scale);
-        context.drawText(this.getTextRenderer(), text, (int) (x * (1 / scale)), (int) (y * (1 / scale)), color, shadow);
-        context.getMatrices().scale((1 / scale), (1 / scale));
+    private void renderText(GuiGraphics context, String text, float x, float y, int color, boolean shadow, float scale) {
+        context.pose().scale(scale, scale);
+        context.drawString(this.getFont(), text, (int) (x * (1 / scale)), (int) (y * (1 / scale)), color, shadow);
+        context.pose().scale((1 / scale), (1 / scale));
     }
 
     @Unique
-    public Vec2f getDistance(String displayString) {
-        float y = (client.getWindow().getScaledHeight() / 2.0F) - DisplayConfig.yOffset;
-        float x = (client.getWindow().getScaledWidth() / 2.0F - ((client.textRenderer.getWidth(displayString) / 2.0F) * DisplayConfig.distanceScale)) - DisplayConfig.xOffset;
-        return new Vec2f(x, y);
+    public Vec2 getDistance(String displayString) {
+        float y = (minecraft.getWindow().getGuiScaledHeight() / 2.0F) - DisplayConfig.yOffset;
+        float x = (minecraft.getWindow().getGuiScaledWidth() / 2.0F - ((minecraft.font.width(displayString) / 2.0F) * DisplayConfig.distanceScale)) - DisplayConfig.xOffset;
+        return new Vec2(x, y);
     }
 
     @Unique
-    public Vec2f getHitDistance(String displayString) {
-        float y = (client.getWindow().getScaledHeight() / 2.0F) - DisplayConfig.hitYOffset;
-        float x = (client.getWindow().getScaledWidth() / 2.0F - ((client.textRenderer.getWidth(displayString) / 2.0F) * DisplayConfig.hitDistanceScale)) - DisplayConfig.hitXOffset;
-        return new Vec2f(x, y);
+    public Vec2 getHitDistance(String displayString) {
+        float y = (minecraft.getWindow().getGuiScaledHeight() / 2.0F) - DisplayConfig.hitYOffset;
+        float x = (minecraft.getWindow().getGuiScaledWidth() / 2.0F - ((minecraft.font.width(displayString) / 2.0F) * DisplayConfig.hitDistanceScale)) - DisplayConfig.hitXOffset;
+        return new Vec2(x, y);
     }
 
     @Unique
-    public Vec2f getAverageHitDistance(String displayString) {
-        float y = (client.getWindow().getScaledHeight() / 2.0F) - DisplayConfig.averageHitYOffset;
-        float x = (client.getWindow().getScaledWidth() / 2.0F - ((client.textRenderer.getWidth(displayString) / 2.0F) * DisplayConfig.averageHitDistanceScale)) - DisplayConfig.averageHitXOffset;
-        return new Vec2f(x, y);
+    public Vec2 getAverageHitDistance(String displayString) {
+        float y = (minecraft.getWindow().getGuiScaledHeight() / 2.0F) - DisplayConfig.averageHitYOffset;
+        float x = (minecraft.getWindow().getGuiScaledWidth() / 2.0F - ((minecraft.font.width(displayString) / 2.0F) * DisplayConfig.averageHitDistanceScale)) - DisplayConfig.averageHitXOffset;
+        return new Vec2(x, y);
     }
 }
