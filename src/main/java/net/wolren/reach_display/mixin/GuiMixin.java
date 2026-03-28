@@ -2,7 +2,7 @@ package net.wolren.reach_display.mixin;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.world.entity.Entity;
@@ -14,6 +14,7 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.wolren.reach_display.config.DisplayConfig;
 import net.wolren.reach_display.data.SharedData;
+import org.jetbrains.annotations.UnknownNullability;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -33,8 +34,8 @@ public abstract class GuiMixin {
     @Shadow
     public abstract Font getFont();
 
-    @Inject(at = @At("TAIL"), method = "render")
-    public void render(GuiGraphics context, DeltaTracker tickCounter, CallbackInfo ci) {
+    @Inject(at = @At("TAIL"), method = "extractRenderState")
+    public void render(GuiGraphicsExtractor context, DeltaTracker tickCounter, CallbackInfo ci) {
         if (!DisplayConfig.enabled) return;
 
         Player player = minecraft.player;
@@ -174,10 +175,12 @@ public abstract class GuiMixin {
 
 
     @Unique
-    private void renderText(GuiGraphics context, String text, float x, float y, int color, boolean shadow, float scale) {
+    private void renderText(@UnknownNullability GuiGraphicsExtractor context, String text, float x, float y, int color, boolean shadow, float scale) {
+        context.pose().pushMatrix();
         context.pose().scale(scale, scale);
-        context.drawString(this.getFont(), text, (int) (x * (1 / scale)), (int) (y * (1 / scale)), color, shadow);
+        context.text(this.getFont(), text, (int) (x * (1 / scale)), (int) (y * (1 / scale)), color, shadow);
         context.pose().scale((1 / scale), (1 / scale));
+        context.pose().popMatrix();
     }
 
     @Unique

@@ -5,7 +5,7 @@
   "name": "Reach Display",
   "description": "A configurable visual representation of your reach and hit distances",
   "authors": [
-    "Wolren"
+    "Wolren, Blueskiez77"
   ],
   "contact": {
     "homepage": "https://modrinth.com/project/reach-display",
@@ -29,7 +29,7 @@
   ],
   "depends": {
     "fabricloader": ">=${loader_version}",
-    "fabric": "*",
+    "fabric-api": "*",
     "minecraft": ">=1.21.1",
     "midnightlib": ">=1.4.1-fabric"
   }
