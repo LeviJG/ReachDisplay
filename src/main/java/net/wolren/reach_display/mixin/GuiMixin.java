@@ -24,9 +24,14 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 @Mixin(Gui.class)
 public abstract class GuiMixin {
+    @Unique
+    private static final Map<Integer, DecimalFormat> FORMATTER_CACHE = new HashMap<>();
+
     @Shadow
     @Final
     private Minecraft minecraft = Minecraft.getInstance();
@@ -69,7 +74,8 @@ public abstract class GuiMixin {
             if (entity != null) {
                 if (DisplayConfig.showPlayers && !entity.isAlwaysTicking()) return;
                 else {
-                    String displayString = getHitDisplayString(SharedData.getInstance().getDistance());
+                    int hitDistanceDecimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
+                    String displayString = getFormattedDistance(SharedData.getInstance().getDistance(), hitDistanceDecimalPlaces, RoundingMode.DOWN);
 
                     String colorHex = DisplayConfig.hitDistanceColor;
                     int colorInt = parseColorWithDefault(colorHex);
@@ -88,8 +94,8 @@ public abstract class GuiMixin {
             Entity entity = SharedData.getInstance().getEntity();
             if (entity != null) {
                 if (DisplayConfig.showPlayers && !entity.isAlwaysTicking()) return;
-
-                String displayString = getAverageHitDisplayString(SharedData.getInstance().getAverageDistance());
+                int averageHitDistanceDecimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
+                String displayString = getFormattedDistance(SharedData.getInstance().getAverageDistance(), averageHitDistanceDecimalPlaces, RoundingMode.DOWN);
 
                 String colorHex = DisplayConfig.averageHitDistanceColor;
                 int colorInt = parseColorWithDefault(colorHex);
@@ -120,20 +126,33 @@ public abstract class GuiMixin {
         return (alpha << 24) | (colorInt & 0xFFFFFF);
     }
 
-    @Unique
+/*    @Unique
     private String getAverageHitDisplayString(Double distance) {
-        int decimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
+        int averageHitDistanceDecimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
 
-        DecimalFormat df = new DecimalFormat("0." + "0".repeat(decimalPlaces));
+        DecimalFormat df = new DecimalFormat("0." + "0".repeat(averageHitDistanceDecimalPlaces));
 
         return df.format(distance);
-    }
+    }*/
+
+/*    @Unique
+    private String getHitDisplayString(Double distance) {
+        int hitDistanceDecimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
+
+        DecimalFormat df = new DecimalFormat("0." + "0".repeat(hitDistanceDecimalPlaces));
+
+        return df.format(distance);
+    }*/
 
     @Unique
-    private String getHitDisplayString(Double distance) {
-        int decimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
+    private String getFormattedDistance(double distance, int precision, RoundingMode mode) {
+        int cacheKey = (precision * 10) + mode.ordinal();
 
-        DecimalFormat df = new DecimalFormat("0." + "0".repeat(decimalPlaces));
+        DecimalFormat df = FORMATTER_CACHE.computeIfAbsent(cacheKey, key -> {
+            DecimalFormat newDf = new DecimalFormat("0." + "0".repeat(precision));
+            newDf.setRoundingMode(mode);
+            return newDf;
+        });
 
         return df.format(distance);
     }
@@ -143,10 +162,6 @@ public abstract class GuiMixin {
         DisplayConfig.DistanceCalculationMethod distanceCalculationMethod = DisplayConfig.hitDistanceCalculationMethod;
 
         if (player.isSpectator()) return "";
-
-        int decimalPlaces = DisplayConfig.distanceDecimalPlaces;
-        DecimalFormat df = new DecimalFormat("0." + "0".repeat(decimalPlaces));
-        df.setRoundingMode(RoundingMode.DOWN);
 
         double distance;
         Vec3 eyePos = player.getEyePosition();
@@ -170,7 +185,10 @@ public abstract class GuiMixin {
             Vec3 closestPoint = new Vec3(closestX, closestY, closestZ);
             distance = eyePos.distanceTo(closestPoint);
         }
-        return df.format(distance);
+
+        int distanceDecimalPlaces = DisplayConfig.distanceDecimalPlaces;
+
+        return getFormattedDistance(distance, distanceDecimalPlaces, RoundingMode.DOWN);
     }
 
 
@@ -179,7 +197,6 @@ public abstract class GuiMixin {
         context.pose().pushMatrix();
         context.pose().scale(scale, scale);
         context.text(this.getFont(), text, (int) (x * (1 / scale)), (int) (y * (1 / scale)), color, shadow);
-        context.pose().scale((1 / scale), (1 / scale));
         context.pose().popMatrix();
     }
 
