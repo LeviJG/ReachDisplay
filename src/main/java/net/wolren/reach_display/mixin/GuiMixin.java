@@ -10,7 +10,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.wolren.reach_display.config.DisplayConfig;
 import net.wolren.reach_display.data.SharedData;
@@ -26,11 +25,30 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Mixin(Gui.class)
 public abstract class GuiMixin {
     @Unique
     private static final Map<Integer, DecimalFormat> FORMATTER_CACHE = new HashMap<>();
+    @Unique
+    private String cachedDistanceColorHex;
+    @Unique
+    private float cachedDistanceOpacityScale;
+    @Unique
+    private int cachedDistanceARGBColor;
+    @Unique
+    private String cachedHitDistanceColorHex;
+    @Unique
+    private float cachedHitDistanceOpacityScale;
+    @Unique
+    private int cachedHitDistanceARGBColor;
+    @Unique
+    private String cachedAverageHitDistanceColorHex;
+    @Unique
+    private float cachedAverageHitDistanceOpacityScale;
+    @Unique
+    private int cachedAverageHitDistanceARGBColor;
 
     @Shadow
     @Final
@@ -54,17 +72,15 @@ public abstract class GuiMixin {
                 if (DisplayConfig.showPlayers && !targetEntity.isAlwaysTicking()) return;
                 else {
                     String displayString = getDisplayString(player, targetEntity);
+                    if (!displayString.isEmpty()) {
+                        int ARGBColorInt = getARGBTextColor("distance", DisplayConfig.distanceColor, DisplayConfig.distanceOpacity);
+                        boolean shadow = DisplayConfig.distanceShadow;
+                        float scale = DisplayConfig.distanceScale;
+                        int xOffset = DisplayConfig.xOffset;
+                        int yOffset = DisplayConfig.yOffset;
 
-                    String colorHex = DisplayConfig.distanceColor;
-                    int colorInt = parseColorWithDefault(colorHex);
-                    float opacityScale = DisplayConfig.distanceOpacity;
-                    int ARGBColorInt = parseARGBColorWithOpacity(opacityScale, colorInt);
-                    boolean shadow = DisplayConfig.distanceShadow;
-                    float scale = DisplayConfig.distanceScale;
-
-
-
-                    renderText(context, displayString, getDistance(displayString).x, getDistance(displayString).y, ARGBColorInt, shadow, scale);
+                        renderAtPosition(context, displayString, ARGBColorInt, shadow, scale, xOffset, yOffset);
+                    }
                 }
             }
         }
@@ -76,15 +92,13 @@ public abstract class GuiMixin {
                 else {
                     int hitDistanceDecimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
                     String displayString = getFormattedDistance(SharedData.getInstance().getDistance(), hitDistanceDecimalPlaces, RoundingMode.DOWN);
-
-                    String colorHex = DisplayConfig.hitDistanceColor;
-                    int colorInt = parseColorWithDefault(colorHex);
-                    float opacityScale = DisplayConfig.hitDistanceOpacity;
-                    int ARGBColorInt = parseARGBColorWithOpacity(opacityScale, colorInt);
+                    int ARGBColorInt = getARGBTextColor("hitDistance", DisplayConfig.hitDistanceColor, DisplayConfig.hitDistanceOpacity);
                     boolean shadow = DisplayConfig.hitDistanceShadow;
                     float scale = DisplayConfig.hitDistanceScale;
+                    int xOffset = DisplayConfig.hitXOffset;
+                    int yOffset = DisplayConfig.hitYOffset;
 
-                    renderText(context, displayString, getHitDistance(displayString).x, getHitDistance(displayString).y, ARGBColorInt, shadow, scale);
+                    renderAtPosition(context, displayString, ARGBColorInt, shadow, scale, xOffset, yOffset);
                 }
 
             }
@@ -96,16 +110,13 @@ public abstract class GuiMixin {
                 if (DisplayConfig.showPlayers && !entity.isAlwaysTicking()) return;
                 int averageHitDistanceDecimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
                 String displayString = getFormattedDistance(SharedData.getInstance().getAverageDistance(), averageHitDistanceDecimalPlaces, RoundingMode.DOWN);
-
-                String colorHex = DisplayConfig.averageHitDistanceColor;
-                int colorInt = parseColorWithDefault(colorHex);
-                float opacityScale = DisplayConfig.averageHitDistanceOpacity;
-                int ARGBColorInt = parseARGBColorWithOpacity(opacityScale, colorInt);
+                int ARGBColorInt = getARGBTextColor("averageHitDistance", DisplayConfig.averageHitDistanceColor, DisplayConfig.averageHitDistanceOpacity);
                 boolean shadow = DisplayConfig.averageHitDistanceShadow;
                 float scale = DisplayConfig.averageHitDistanceScale;
+                int xOffset = DisplayConfig.averageHitXOffset;
+                int yOffset = DisplayConfig.averageHitYOffset;
 
-                renderText(context, displayString, getAverageHitDistance(displayString).x, getAverageHitDistance(displayString).y, ARGBColorInt, shadow, scale);
-
+                renderAtPosition(context, displayString, ARGBColorInt, shadow, scale, xOffset, yOffset);
             }
         }
     }
@@ -121,28 +132,40 @@ public abstract class GuiMixin {
     }
 
     @Unique
-    private  static  int parseARGBColorWithOpacity(float opacityScale, int colorInt){
-        int alpha = (int)(opacityScale * 255) & 0xFF;
+    private static int parseARGBColorWithOpacity(String colorHex, float opacityScale) {
+        int colorInt = parseColorWithDefault(colorHex);
+        int alpha = (int) (opacityScale * 255) & 0xFF;
         return (alpha << 24) | (colorInt & 0xFFFFFF);
     }
 
-/*    @Unique
-    private String getAverageHitDisplayString(Double distance) {
-        int averageHitDistanceDecimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
-
-        DecimalFormat df = new DecimalFormat("0." + "0".repeat(averageHitDistanceDecimalPlaces));
-
-        return df.format(distance);
-    }*/
-
-/*    @Unique
-    private String getHitDisplayString(Double distance) {
-        int hitDistanceDecimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
-
-        DecimalFormat df = new DecimalFormat("0." + "0".repeat(hitDistanceDecimalPlaces));
-
-        return df.format(distance);
-    }*/
+    @Unique
+    private int getARGBTextColor(String processGroup, String colorHex, float opacityScale) {
+        if (Objects.equals(processGroup, "distance")) {
+            if (!Objects.equals(colorHex, cachedDistanceColorHex) || opacityScale != cachedDistanceOpacityScale) {
+                int ARGBColorInt = parseARGBColorWithOpacity(colorHex, opacityScale);
+                cachedDistanceColorHex = colorHex;
+                cachedDistanceOpacityScale = opacityScale;
+                cachedDistanceARGBColor = ARGBColorInt;
+            }
+            return cachedDistanceARGBColor;
+        } else if (Objects.equals(processGroup, "hitDistance")) {
+            if (!Objects.equals(colorHex, cachedHitDistanceColorHex) || opacityScale != cachedHitDistanceOpacityScale) {
+                int ARGBColorInt = parseARGBColorWithOpacity(colorHex, opacityScale);
+                cachedHitDistanceColorHex = colorHex;
+                cachedHitDistanceOpacityScale = opacityScale;
+                cachedHitDistanceARGBColor = ARGBColorInt;
+            }
+            return cachedHitDistanceARGBColor;
+        } else {
+            if (!Objects.equals(colorHex, cachedAverageHitDistanceColorHex) || opacityScale != cachedAverageHitDistanceOpacityScale) {
+                int ARGBColorInt = parseARGBColorWithOpacity(colorHex, opacityScale);
+                cachedAverageHitDistanceColorHex = colorHex;
+                cachedAverageHitDistanceOpacityScale = opacityScale;
+                cachedAverageHitDistanceARGBColor = ARGBColorInt;
+            }
+            return cachedAverageHitDistanceARGBColor;
+        }
+    }
 
     @Unique
     private String getFormattedDistance(double distance, int precision, RoundingMode mode) {
@@ -175,7 +198,7 @@ public abstract class GuiMixin {
 
             double maxReach = player.isCreative() ? 5.0D : 3.0D;
             if (distance > maxReach) return "";
-        } else{
+        } else {
             AABB box = targetEntity.getBoundingBox();
 
             double closestX = Math.max(box.minX, Math.min(eyePos.x, box.maxX));
@@ -196,28 +219,16 @@ public abstract class GuiMixin {
     private void renderText(@UnknownNullability GuiGraphicsExtractor context, String text, float x, float y, int color, boolean shadow, float scale) {
         context.pose().pushMatrix();
         context.pose().scale(scale, scale);
-        context.text(this.getFont(), text, (int) (x * (1 / scale)), (int) (y * (1 / scale)), color, shadow);
+        float invScale = 1.0f / scale;
+        context.text(this.getFont(), text, (int) (x * invScale), (int) (y * invScale), color, shadow);
         context.pose().popMatrix();
     }
 
     @Unique
-    public Vec2 getDistance(String displayString) {
-        float y = (minecraft.getWindow().getGuiScaledHeight() / 2.0F) - DisplayConfig.yOffset;
-        float x = (minecraft.getWindow().getGuiScaledWidth() / 2.0F - ((minecraft.font.width(displayString) / 2.0F) * DisplayConfig.distanceScale)) - DisplayConfig.xOffset;
-        return new Vec2(x, y);
-    }
+    private void renderAtPosition(@UnknownNullability GuiGraphicsExtractor context, String displayString, int color, boolean shadow, float scale, int xOffset, int yOffset) {
+        float y = (minecraft.getWindow().getGuiScaledHeight() / 2.0F) - yOffset;
+        float x = (minecraft.getWindow().getGuiScaledWidth() / 2.0F - ((minecraft.font.width(displayString) / 2.0F) * scale) - xOffset);
 
-    @Unique
-    public Vec2 getHitDistance(String displayString) {
-        float y = (minecraft.getWindow().getGuiScaledHeight() / 2.0F) - DisplayConfig.hitYOffset;
-        float x = (minecraft.getWindow().getGuiScaledWidth() / 2.0F - ((minecraft.font.width(displayString) / 2.0F) * DisplayConfig.hitDistanceScale)) - DisplayConfig.hitXOffset;
-        return new Vec2(x, y);
-    }
-
-    @Unique
-    public Vec2 getAverageHitDistance(String displayString) {
-        float y = (minecraft.getWindow().getGuiScaledHeight() / 2.0F) - DisplayConfig.averageHitYOffset;
-        float x = (minecraft.getWindow().getGuiScaledWidth() / 2.0F - ((minecraft.font.width(displayString) / 2.0F) * DisplayConfig.averageHitDistanceScale)) - DisplayConfig.averageHitXOffset;
-        return new Vec2(x, y);
+        renderText(context, displayString, x, y, color, shadow, scale);
     }
 }
