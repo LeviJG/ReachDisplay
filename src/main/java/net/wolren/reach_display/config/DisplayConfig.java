@@ -9,12 +9,17 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "basic", name = "Show Players Only")
     public static boolean showPlayers = true;
 
+    public enum DistanceCalculationMethod {
+        RAY_HIT_POINT,
+        CLOSEST_POINT,
+    }
+    @Entry(category = "basic", name = "Distance Calculation Method")
+    public static DistanceCalculationMethod distanceCalculationMethod = DistanceCalculationMethod.CLOSEST_POINT;
 
+    //@Comment(category = "distance") public static Comment spacer1;
 
     @Entry(category = "distance", name = "Enable Distance Display")
     public static boolean distanceEnable = true;
-
-    //@Comment(category = "distance") public static Comment spacer1;
 
     @Entry(category = "distance", name = "Distance Scale", isSlider = true, min = 0.1f, max = 5f, precision = 10)
     public static float distanceScale = 1.0f;
@@ -36,15 +41,6 @@ public class DisplayConfig extends MidnightConfig {
 
     @Entry(category = "distance", name = "Distance Decimal Places")
     public static int distanceDecimalPlaces = 2;
-
-    public enum DistanceCalculationMethod {
-        RAY_HIT_POINT,
-        CLOSEST_POINT,
-    }
-    @Entry(category = "distance", name = "Distance Calculation Method")
-    public static DistanceCalculationMethod distanceCalculationMethod = DistanceCalculationMethod.CLOSEST_POINT;
-
-
 
     @Entry(category = "3hitDistance", name = "Enable Hit Distance Display")
     public static boolean hitDistanceEnable = true;
@@ -71,11 +67,6 @@ public class DisplayConfig extends MidnightConfig {
 
     @Entry(category = "3hitDistance", name = "Hit Distance Decimal Places")
     public static int hitDistanceDecimalPlaces = 2;
-
-    @Entry(category = "3hitDistance", name = "Hit Distance Calculation Method")
-    public static DistanceCalculationMethod hitDistanceCalculationMethod = DistanceCalculationMethod.CLOSEST_POINT;
-
-
 
     @Entry(category = "averageHitDistance", name = "Enable Average Hit Distance")
     public static boolean averageHitDistanceEnable = false;
@@ -115,4 +106,3 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "averageHitDistance", name = "Average Hit Distance Decimal Places")
     public static int averageHitDistanceDecimalPlaces = 2;
 }
-
