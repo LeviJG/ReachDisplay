@@ -6,7 +6,6 @@ import net.wolren.reach_display.config.DisplayConfig;
 
 public class ReachDisplay implements ModInitializer {
     public static final String MOD_ID = "reach_display";
-    //public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     @Override
     public void onInitialize() {

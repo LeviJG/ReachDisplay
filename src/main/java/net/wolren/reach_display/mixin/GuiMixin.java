@@ -29,60 +29,60 @@ public abstract class GuiMixin {
     @Inject(at = @At("TAIL"), method = "extractRenderState")
     public void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter, CallbackInfo ci) {
         if (!DisplayConfig.enabled) return;
-
         Player player = minecraft.player;
         HitResult target = minecraft.hitResult;
-
         if (player == null || target == null) return;
 
-        if (target.getType() == HitResult.Type.ENTITY && DisplayConfig.distanceEnable) {
-            Entity targetEntity = ((EntityHitResult) target).getEntity();
-            if (!targetEntity.isInvisibleTo(player)) {
-                if (DisplayConfig.showPlayers && !targetEntity.isAlwaysTicking()) return;
+        SharedData sharedData = SharedData.getInstance();
 
-                double reachDistance = MeasureReach(player, targetEntity);
-                if (reachDistance != -1) {
-                    int distanceDecimalPlaces = DisplayConfig.distanceDecimalPlaces;
-                    boolean shadow = DisplayConfig.distanceShadow;
-                    float scale = DisplayConfig.distanceScale;
-                    int xOffset = DisplayConfig.xOffset;
-                    int yOffset = DisplayConfig.yOffset;
+        if(DisplayConfig.distanceEnable){
+            if (target.getType() == HitResult.Type.ENTITY){
+                Entity targetEntity = ((EntityHitResult) target).getEntity();
+                if (!targetEntity.isInvisibleTo(player)){
+                    if (!DisplayConfig.showPlayersOnly || targetEntity instanceof Player){
+                        double reachDistance = MeasureReach(player, targetEntity);
+                        if (reachDistance != -1) {
+                            int distanceDecimalPlaces = DisplayConfig.distanceDecimalPlaces;
+                            boolean shadow = DisplayConfig.distanceShadow;
+                            float scale = DisplayConfig.distanceScale;
+                            int xOffset = DisplayConfig.xOffset;
+                            int yOffset = DisplayConfig.yOffset;
 
-                    CustomRender.renderText(minecraft, graphics, reachDistance, distanceDecimalPlaces, 0, shadow, scale, xOffset, yOffset);
+                            CustomRender.renderText(minecraft, graphics, reachDistance, distanceDecimalPlaces, 0, shadow, scale, xOffset, yOffset);
+                        }
+                    }
                 }
             }
         }
 
         if (DisplayConfig.hitDistanceEnable) {
-            Entity entity = SharedData.getInstance().getEntity();
-            if (entity != null) {
-                if (DisplayConfig.showPlayers && !entity.isAlwaysTicking()) return;
-                else {
-                    int hitDistanceDecimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
-                    double reachDistance = SharedData.getInstance().getDistance();
-                    boolean shadow = DisplayConfig.hitDistanceShadow;
-                    float scale = DisplayConfig.hitDistanceScale;
-                    int xOffset = DisplayConfig.hitXOffset;
-                    int yOffset = DisplayConfig.hitYOffset;
+            Entity entity = sharedData.getEntity();
+            if (entity == null) return;
+            if (DisplayConfig.showPlayersOnly && !(entity instanceof Player)) return;
 
-                    CustomRender.renderText(minecraft, graphics, reachDistance, hitDistanceDecimalPlaces, 1, shadow, scale, xOffset, yOffset);
-                }
-            }
+            int hitDistanceDecimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
+            double reachDistance = sharedData.getDistance();
+            boolean shadow = DisplayConfig.hitDistanceShadow;
+            float scale = DisplayConfig.hitDistanceScale;
+            int xOffset = DisplayConfig.hitXOffset;
+            int yOffset = DisplayConfig.hitYOffset;
+
+            CustomRender.renderText(minecraft, graphics, reachDistance, hitDistanceDecimalPlaces, 1, shadow, scale, xOffset, yOffset);
         }
 
         if (DisplayConfig.averageHitDistanceEnable) {
-            Entity entity = SharedData.getInstance().getEntity();
-            if (entity != null) {
-                if (DisplayConfig.showPlayers && !entity.isAlwaysTicking()) return;
-                int averageHitDistanceDecimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
-                double reachDistance = SharedData.getInstance().getAverageDistance();
-                boolean shadow = DisplayConfig.averageHitDistanceShadow;
-                float scale = DisplayConfig.averageHitDistanceScale;
-                int xOffset = DisplayConfig.averageHitXOffset;
-                int yOffset = DisplayConfig.averageHitYOffset;
+            Entity entity = sharedData.getEntity();
+            if (entity == null) return;
+            if (DisplayConfig.showPlayersOnly && !(entity instanceof Player)) return;
 
-                 CustomRender.renderText(minecraft, graphics, reachDistance, averageHitDistanceDecimalPlaces, 2, shadow, scale, xOffset, yOffset);
-            }
+            int averageHitDistanceDecimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
+            double reachDistance = sharedData.getAverageDistance();
+            boolean shadow = DisplayConfig.averageHitDistanceShadow;
+            float scale = DisplayConfig.averageHitDistanceScale;
+            int xOffset = DisplayConfig.averageHitXOffset;
+            int yOffset = DisplayConfig.averageHitYOffset;
+
+            CustomRender.renderText(minecraft, graphics, reachDistance, averageHitDistanceDecimalPlaces, 2, shadow, scale, xOffset, yOffset);
         }
     }
 }

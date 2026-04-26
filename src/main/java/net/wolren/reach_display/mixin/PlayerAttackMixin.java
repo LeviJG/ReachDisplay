@@ -20,7 +20,7 @@ public abstract class PlayerAttackMixin {
 
         if (!DisplayConfig.enabled) return;
         if (player == null || entity == null) return;
-        if (DisplayConfig.showPlayers && !entity.is(EntityType.PLAYER)) return;
+        if (DisplayConfig.showPlayersOnly && !entity.is(EntityType.PLAYER)) return;
 
         double reach = MeasureReach(player, entity);
 

@@ -7,7 +7,7 @@ public class DisplayConfig extends MidnightConfig {
     public static boolean enabled = true;
 
     @Entry(category = "basic", name = "Show Players Only")
-    public static boolean showPlayers = true;
+    public static boolean showPlayersOnly = true;
 
     public enum DistanceCalculationMethod {
         RAY_HIT_POINT,

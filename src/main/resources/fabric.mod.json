@@ -8,10 +8,10 @@
     "Wolren, Blueskiez77"
   ],
   "contact": {
-    "homepage": "https://modrinth.com/project/reach-display",
-    "sources": "https://github.com/Wolren/ReachDisplay",
-    "repo": "https://github.com/Wolren/ReachDisplay",
-    "issues": "https://github.com/Wolren/ReachDisplay/issues"
+    "homepage": "https://modrinth.com/mod/reach-display-(maintained)",
+    "sources": "https://github.com/LeviJG/ReachDisplay",
+    "repo": "https://github.com/LeviJG/ReachDisplay",
+    "issues": "https://github.com/LeviJG/ReachDisplay/issues"
   },
   "license": "GPL-3.0",
   "icon": "assets/reach_display/icon.png",
@@ -30,7 +30,7 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
-    "minecraft": ">=1.21.1",
-    "midnightlib": ">=1.4.1-fabric"
+    "minecraft": ">=26.1",
+    "midnightlib": ">=1.9.2-fabric"
   }
 }
