@@ -18,22 +18,20 @@ public class ReachCalculation {
         DisplayConfig.DistanceCalculationMethod distanceCalculationMethod = DisplayConfig.distanceCalculationMethod;
         Minecraft client = Minecraft.getInstance();
         HitResult result = client.hitResult;
-        if (!(result instanceof EntityHitResult hitResult)) return -1;
-        Entity hitEntity = hitResult.getEntity();
-        if (hitEntity != target) return -1;
 
         Vec3 eyePos = player.getEyePosition();
         double distance;
 
         if(distanceCalculationMethod == RAY_HIT_POINT){
+            if (!(result instanceof EntityHitResult hitResult)) return -1;
             distance = player.getEyePosition().distanceTo(hitResult.getLocation());
         }
         else{
             AABB box = target.getBoundingBox();
 
-            double closestX = Math.max(box.minX, Math.min(eyePos.x, box.maxX));
-            double closestY = Math.max(box.minY, Math.min(eyePos.y, box.maxY));
-            double closestZ = Math.max(box.minZ, Math.min(eyePos.z, box.maxZ));
+            double closestX = Math.clamp(eyePos.x, box.minX, box.maxX);
+            double closestY = Math.clamp(eyePos.y, box.minY, box.maxY);
+            double closestZ = Math.clamp(eyePos.z, box.minZ, box.maxZ);
 
             Vec3 closestPoint = new Vec3(closestX, closestY, closestZ);
             distance = eyePos.distanceTo(closestPoint);
