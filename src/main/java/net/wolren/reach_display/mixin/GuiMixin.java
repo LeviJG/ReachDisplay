@@ -24,7 +24,7 @@ public abstract class GuiMixin {
 
     @Shadow
     @Final
-    private Minecraft minecraft = Minecraft.getInstance();
+    private Minecraft minecraft; //= Minecraft.getInstance();
 
     @Inject(at = @At("TAIL"), method = "extractRenderState")
     public void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter, CallbackInfo ci) {
@@ -42,24 +42,18 @@ public abstract class GuiMixin {
                     if (!DisplayConfig.showPlayersOnly || targetEntity instanceof Player){
                         double reachDistance = MeasureReach(player, targetEntity);
                         if (reachDistance != -1) {
-                            int distanceDecimalPlaces = DisplayConfig.distanceDecimalPlaces;
-                            boolean shadow = DisplayConfig.distanceShadow;
-                            float scale = DisplayConfig.distanceScale;
-                            int xOffset = DisplayConfig.xOffset;
-                            int yOffset = DisplayConfig.yOffset;
-
-                            CustomRender.renderText(minecraft, graphics, reachDistance, distanceDecimalPlaces, 0, shadow, scale, xOffset, yOffset);
+                            CustomRender.renderText(minecraft, graphics, reachDistance, DisplayConfig.distanceDecimalPlaces, 0, DisplayConfig.distanceShadow, DisplayConfig.distanceScale, DisplayConfig.xOffset, DisplayConfig.yOffset);
                         }
                     }
                 }
             }
         }
 
-        if (DisplayConfig.hitDistanceEnable) {
-            Entity entity = sharedData.getEntity();
-            if (entity == null) return;
-            if (DisplayConfig.showPlayersOnly && !(entity instanceof Player)) return;
+        if (sharedData.getEntity() == null){
+            return;
+        }
 
+        if (DisplayConfig.hitDistanceEnable) {
             int hitDistanceDecimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
             double reachDistance = sharedData.getDistance();
             boolean shadow = DisplayConfig.hitDistanceShadow;
@@ -71,9 +65,6 @@ public abstract class GuiMixin {
         }
 
         if (DisplayConfig.averageHitDistanceEnable) {
-            Entity entity = sharedData.getEntity();
-            if (entity == null) return;
-            if (DisplayConfig.showPlayersOnly && !(entity instanceof Player)) return;
 
             int averageHitDistanceDecimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
             double reachDistance = sharedData.getAverageDistance();

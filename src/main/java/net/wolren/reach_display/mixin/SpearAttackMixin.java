@@ -19,12 +19,13 @@ public abstract class SpearAttackMixin {
     private void onStabAttack(EquipmentSlot slot, Entity target, float baseDamage,
                               boolean dealsDamage, boolean dealsKnockback, boolean dismounts,
                               CallbackInfoReturnable<Boolean> cir) {
-        if (!DisplayConfig.enabled) return;
-        if (target == null) return;
+        if (!DisplayConfig.enabled || target == null) return;
         Player player = (Player)(Object)this;
         if (DisplayConfig.showPlayersOnly && !(target instanceof Player)) return;
 
         double reach = MeasureReach(player, target);
+        if (reach == -1) return;
+
         SharedData data = SharedData.getInstance();
         data.setDistanceAndTarget(reach, target);
         data.addDistanceToAverage(reach);

@@ -18,9 +18,6 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "net.wolren.reach_display.ReachDisplayClient"
-    ],
-    "main": [
       "net.wolren.reach_display.ReachDisplay"
     ]
   },
@@ -31,6 +28,6 @@
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
     "minecraft": ">=26.1",
-    "midnightlib": ">=1.9.2-fabric"
+    "midnightlib": ">=1.9.3-fabric"
   }
 }

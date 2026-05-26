@@ -74,13 +74,13 @@ public class DisplayConfig extends MidnightConfig {
     //@Comment(category = "averageHitDistance") public static Comment spacer3;
 
     @Entry(category = "averageHitDistance", name = "Average Hit Mode")
-    public static AverageModeEnum averageHitMode = AverageModeEnum.LOCAL_AVERAGE;
+    public static AverageModeEnum averageHitMode = AverageModeEnum.LAST_HITS;
 
     public enum AverageModeEnum {
         LOCAL_AVERAGE, GLOBAL_AVERAGE, LAST_HITS
     }
 
-    @Entry(category = "averageHitDistance", name = "Number Of Hits Counted", min = 2)
+    @Entry(category = "averageHitDistance", name = "Number Of Hits Counted", min = 2, max = 32767)
     public static int averageNumberOfHitsCounted = 3;
 
     //@Comment(category = "averageHitDistance") public static Comment spacer4;
