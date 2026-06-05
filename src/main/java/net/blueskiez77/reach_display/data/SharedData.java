@@ -1,8 +1,8 @@
-package net.wolren.reach_display.data;
+package net.blueskiez77.reach_display.data;
 
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.entity.Entity;
-import net.wolren.reach_display.config.DisplayConfig;
+import net.blueskiez77.reach_display.config.DisplayConfig;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.LinkedList;

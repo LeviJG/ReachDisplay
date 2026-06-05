@@ -18,7 +18,7 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "net.wolren.reach_display.ReachDisplay"
+      "net.blueskiez77.reach_display.ReachDisplay"
     ]
   },
   "mixins": [

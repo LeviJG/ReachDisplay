@@ -1,7 +1,7 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "net.wolren.reach_display.mixin",
+  "package": "net.blueskiez77.reach_display.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
   ],

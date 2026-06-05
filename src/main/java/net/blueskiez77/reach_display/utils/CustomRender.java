@@ -1,8 +1,8 @@
-package net.wolren.reach_display.utils;
+package net.blueskiez77.reach_display.utils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.wolren.reach_display.config.DisplayConfig;
+import net.blueskiez77.reach_display.config.DisplayConfig;
 import org.jetbrains.annotations.UnknownNullability;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;

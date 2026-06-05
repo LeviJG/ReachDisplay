@@ -1,4 +1,4 @@
-package net.wolren.reach_display.config;
+package net.blueskiez77.reach_display.config;
 
 import eu.midnightdust.lib.config.MidnightConfig;
 

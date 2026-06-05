@@ -1,4 +1,4 @@
-package net.wolren.reach_display.utils;
+package net.blueskiez77.reach_display.utils;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
@@ -7,9 +7,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.wolren.reach_display.config.DisplayConfig;
+import net.blueskiez77.reach_display.config.DisplayConfig;
 
-import static net.wolren.reach_display.config.DisplayConfig.DistanceCalculationMethod.RAY_HIT_POINT;
+import static net.blueskiez77.reach_display.config.DisplayConfig.DistanceCalculationMethod.RAY_HIT_POINT;
 
 public class ReachCalculation {
 
