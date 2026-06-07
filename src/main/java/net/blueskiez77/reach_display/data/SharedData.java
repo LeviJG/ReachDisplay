@@ -1,10 +1,7 @@
 package net.blueskiez77.reach_display.data;
 
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.world.entity.Entity;
 import net.blueskiez77.reach_display.config.DisplayConfig;
-import java.io.*;
-import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -14,42 +11,10 @@ public class SharedData {
     private int localAverageHitCount = 0;
     private final Queue<Double> lastHitsDistance = new LinkedList<>();
     private double averageDistance = 0;
-    private static final String GLOBAL_AVERAGE_FILE_NAME = "global_average_hits.txt";
     private double distance;
     private Entity entity;
-    private PrintWriter writer;
-    private double globalAverageSum = 0;
-    private int globalAverageCount = 0;
 
-    private SharedData() {
-        Path configDir = FabricLoader.getInstance().getConfigDir();
-        File globalAverageFile = configDir.resolve(GLOBAL_AVERAGE_FILE_NAME).toFile();
-
-
-        if (globalAverageFile.exists()){
-            try (BufferedReader reader = new BufferedReader(new FileReader(globalAverageFile))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    for (String s : line.split(",")) {
-                        String trimmed = s.trim();
-                        if (trimmed.isEmpty()) continue;
-                        try {
-                            globalAverageSum += Double.parseDouble(trimmed);
-                            globalAverageCount++;
-                        } catch (NumberFormatException ignored) {}
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        try {
-            writer = new PrintWriter(new FileWriter(globalAverageFile, true));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    private SharedData() {}
 
     public static SharedData getInstance() {
         if (instance == null) {
@@ -70,15 +35,6 @@ public class SharedData {
                 localAverageHitCount++;
                 averageDistance = localAverageDistance / localAverageHitCount;
             }
-            case GLOBAL_AVERAGE -> {
-                if (writer != null) {
-                    writer.append(Double.toString(distance)).append(", ");
-                    writer.flush();
-                }
-                globalAverageSum += distance;
-                globalAverageCount++;
-                averageDistance = globalAverageCount > 0 ? globalAverageSum / globalAverageCount : 0;
-            }
             case LAST_HITS -> {
                 this.lastHitsDistance.add(distance);
                 while (this.lastHitsDistance.size() > DisplayConfig.averageNumberOfHitsCounted) {
@@ -87,10 +43,6 @@ public class SharedData {
                 averageDistance = calculateAverageLastHitsDistance();
             }
         }
-    }
-
-    public void close(){
-        if (writer != null) writer.close();
     }
 
     public double getAverageDistance() {

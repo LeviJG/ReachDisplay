@@ -49,8 +49,15 @@ public class CustomRender {
         RoundingMode roundingMode = RoundingMode.DOWN;
         int cacheKey = (precision * 10) + roundingMode.ordinal();
 
+        if (precision < 1 || precision > 16) {
+            //LOG HERE
+            precision = 2;
+        }
+
+        final int p = precision;
+
         DecimalFormat df = FORMATTER_CACHE.computeIfAbsent(cacheKey, key -> {
-            DecimalFormat newDf = new DecimalFormat("0." + "0".repeat(precision));
+            DecimalFormat newDf = new DecimalFormat("0." + "0".repeat(p));
             newDf.setRoundingMode(roundingMode);
             return newDf;
         });
@@ -72,6 +79,7 @@ public class CustomRender {
     }
 
     private static int parseARGBColorWithOpacity(String colorHex, float opacityScale) {
+        if (colorHex.isEmpty()) return 0xFFFFFF;
         int colorInt = parseColorWithDefault(colorHex);
         int alpha = (int) (opacityScale * 255) & 0xFF;
         return (alpha << 24) | (colorInt & 0xFFFFFF);

@@ -39,7 +39,7 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "distance", name = "Distance Text Shadow")
     public static boolean distanceShadow = false;
 
-    @Entry(category = "distance", name = "Distance Decimal Places")
+    @Entry(category = "distance", name = "Distance Decimal Places", min = 1, max = 16)
     public static int distanceDecimalPlaces = 2;
 
     @Entry(category = "3hitDistance", name = "Enable Hit Distance Display")
@@ -65,7 +65,7 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "3hitDistance", name = "Hit Distance Text Shadow")
     public static boolean hitDistanceShadow = false;
 
-    @Entry(category = "3hitDistance", name = "Hit Distance Decimal Places")
+    @Entry(category = "3hitDistance", name = "Hit Distance Decimal Places", min = 1, max = 16)
     public static int hitDistanceDecimalPlaces = 2;
 
     @Entry(category = "averageHitDistance", name = "Enable Average Hit Distance")
@@ -77,7 +77,7 @@ public class DisplayConfig extends MidnightConfig {
     public static AverageModeEnum averageHitMode = AverageModeEnum.LAST_HITS;
 
     public enum AverageModeEnum {
-        LOCAL_AVERAGE, GLOBAL_AVERAGE, LAST_HITS
+        LOCAL_AVERAGE, LAST_HITS
     }
 
     @Entry(category = "averageHitDistance", name = "Number Of Hits Counted", min = 2, max = 32767)
@@ -103,6 +103,6 @@ public class DisplayConfig extends MidnightConfig {
     @Entry(category = "averageHitDistance", name = "Average Hit Distance Text Shadow")
     public static boolean averageHitDistanceShadow = false;
 
-    @Entry(category = "averageHitDistance", name = "Average Hit Distance Decimal Places")
+    @Entry(category = "averageHitDistance", name = "Average Hit Distance Decimal Places", min = 1, max = 16)
     public static int averageHitDistanceDecimalPlaces = 2;
 }
