@@ -1,1 +1,29 @@
-WyFbTGljZW5zZV0oaHR0cHM6Ly9pbWcuc2hpZWxkcy5pby9naXRodWIvbGljZW5zZS9Xb2xyZW4vUmVhY2hEaXNwbGF5KV0oTElDRU5TRSkKWyFbTGFzdCBjb21taXRdKGh0dHBzOi8vaW1nLnNoaWVsZHMuaW8vZ2l0aHViL2xhc3QtY29tbWl0L1dvbHJlbi9SZWFjaERpc3BsYXkpXShodHRwczovL2dpdGh1Yi5jb20vV29scmVuL1JlYWNoRGlzcGxheS9jb21taXRzKQpbIVtJc3N1ZXNdKGh0dHBzOi8vaW1nLnNoaWVsZHMuaW8vZ2l0aHViL2lzc3Vlcy9Xb2xyZW4vUmVhY2hEaXNwbGF5KV0oaHR0cHM6Ly9naXRodWIuY29tL1dvbHJlbi9SZWFjaERpc3BsYXkvaXNzdWVzKQpbIVtSZXBvIHNpemVdKGh0dHBzOi8vaW1nLnNoaWVsZHMuaW8vZ2l0aHViL3JlcG8tc2l6ZS9Xb2xyZW4vUmVhY2hEaXNwbGF5KV0oaHR0cHM6Ly9naXRodWIuY29tL1dvbHJlbi9SZWFjaERpc3BsYXkpClshW0phdmFdKGh0dHBzOi8vaW1nLnNoaWVsZHMuaW8vYmFkZ2UvSmF2YS0xNy1vcmFuZ2U/bG9nbz1qYXZhKV0oYnVpbGQuZ3JhZGxlKQpbIVtGYWJyaWNdKGh0dHBzOi8vaW1nLnNoaWVsZHMuaW8vYmFkZ2UvRmFicmljLTEuMjAtYmx1ZT9sb2dvPWZhYnJpYyldKGJ1aWxkLmdyYWRsZSkKWyFbTWluZWNyYWZ0XShodHRwczovL2ltZy5zaGllbGRzLmlvL2JhZGdlL01pbmVjcmFmdC0xLjIwLWdyZWVuP2xvZ289bWluZWNyYWZ0KV0oaHR0cHM6Ly9taW5lY3JhZnQubmV0KQpbIVtNb2RyaW50aF0oaHR0cHM6Ly9pbWcuc2hpZWxkcy5pby9iYWRnZS9Nb2RyaW50aC1SZWFjaERpc3BsYXktMDBkNTYyP2xvZ289bW9kcmludGgpXShodHRwczovL21vZHJpbnRoLmNvbS9tb2QvcmVhY2hkaXNwbGF5KQpbIVtPcGVuU1NGIFNjb3JlY2FyZF0oaHR0cHM6Ly9hcGkuc2VjdXJpdHlzY29yZWNhcmRzLmRldi9wcm9qZWN0cy9naXRodWIuY29tL1dvbHJlbi9SZWFjaERpc3BsYXkvYmFkZ2UpXShodHRwczovL3NlY3VyaXR5c2NvcmVjYXJkcy5kZXYvdmlld2VyLz91cmk9Z2l0aHViLmNvbS9Xb2xyZW4vUmVhY2hEaXNwbGF5KQoKIyMgKipHZW5lcmFsKioKVGhlIGdvYWwgb2YgdGhpcyBtb2QgaXMgdG8gYWxsb3cgeW91IHRvIGRpc3BsYXkgdGhlIGRpc3RhbmNlIGJldHdlZW4geW91IGFuZCB0aGUgZW5lbXkgcGxheWVyL21vYiArIHNlZSBmcm9tIGhvdyBmYXIgeW91ciBoaXRzIHJlYWNoZWQgdGhlbS4gSXQncyB1c2VmdWwgaW5mb3JtYXRpb24gdGhhdCBhbGxvd3Mgb25lIHRvIGNvbnRyb2wgY29tYm8gZGlzdGFuY2VzIGFuZCBhbGlnbiBsb29rIGFuZ2xlcyB0byBvcHRpbWlzZSB0aGUgZGlzdGFuY2UuIEV2ZXJ5dGhpbmcg4oCUIHRleHQgc2l6ZSwgY29sb3IsIHBsYWNlbWVudCwgc2hhZG93LCBkZWNpbWFsIHBsYWNlcyDigJQgaXMgY29uZmlndXJhYmxlLgoKIVtEaXN0YW5jZSBEaXNwbGF5XShodHRwczovL2Nkbi5tb2RyaW50aC5jb20vZGF0YS9jYWNoZWRfaW1hZ2VzLzg0MzU0MTFhZDY4NTkwY2MwMzFmOGMwOTFkMzM5MDdhMzY0MDg0NmYucG5nKQogIApUaGUgbW9kIChhcyBvZiAyLjAuMCkgaGFzIDMgZGlmZmVyZW50IGRpc3BsYXlzOgotICMjIyAqKkRpc3RhbmNlKioKICBEaXNwbGF5cyB0aGUgZGlzdGFuY2UgZnJvbSB5b3VyIGV5ZSB0byBlbmVteSBoaXRib3gKLSAjIyMgKipIaXQgRGlzdGFuY2UqKgogIERpc3BsYXlzIHRoZSBkaXN0YW5jZSBvZiB5b3VyIGxhc3QgaGl0Ci0gIyMjICoqQXZlcmFnZSBIaXQgRGlzdGFuY2UqKgogIFRoZSBhdmVyYWdlIG9mIGVpdGhlciBsYXN0IFggaGl0cyBvciBsb2NhbC9nbG9iYWwgc2Vzc2lvbiBoaXQgZGlzdGFuY2VzCgojIyAqKkRlcGVuZGVuY2llcyoqIAotIFtNaWRuaWdodGxpYl0oaHR0cHM6Ly9tb2RyaW50aC5jb20vbW9kL21pZG5pZ2h0bGliL3ZlcnNpb25zP2w9ZmFicmljKQoKIyMgKipGdXR1cmUqKgpJIHdpbGwgY29udGludWUgc3VwcG9ydGluZyB0aGUgbW9kIGZvciAxLjE3KywgaWYgeW91IHdvdWxkIGxpa2UgbW9yZSBvcHRpb25zIGFkZGVkIHRoZW4gcGxlYXNlIHJlcXVlc3QgdGhlbQ==
+[![License](https://img.shields.io/github/license/Wolren/ReachDisplay)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/Wolren/ReachDisplay)](https://github.com/Wolren/ReachDisplay/commits)
+[![Issues](https://img.shields.io/github/issues/Wolren/ReachDisplay)](https://github.com/Wolren/ReachDisplay/issues)
+[![Repo size](https://img.shields.io/github/repo-size/Wolren/ReachDisplay)](https://github.com/Wolren/ReachDisplay)
+[![Java](https://img.shields.io/badge/Java-17-orange?logo=java)](build.gradle)
+[![Fabric](https://img.shields.io/badge/Fabric-1.20-blue?logo=fabric)](build.gradle)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20-green?logo=minecraft)](https://minecraft.net)
+[![Modrinth](https://img.shields.io/badge/Modrinth-ReachDisplay-00d562?logo=modrinth)](https://modrinth.com/mod/reachdisplay)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Wolren/ReachDisplay/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Wolren/ReachDisplay)
+[![Socket](https://img.shields.io/badge/Socket-Supply%20Chain%20Security-333?logo=socketdotdev)](https://socket.dev)
+
+## **General**
+The goal of this mod is to allow you to display the distance between you and the enemy player/mob + see from how far your hits reached them. It's useful information that allows one to control combo distances and align look angles to optimise the distance. Everything — text size, color, placement, shadow, decimal places — is configurable.
+
+![Distance Display](https://cdn.modrinth.com/data/cached_images/8435411ad68590cc031f8c091d33907a3640846f.png)
+  
+The mod (as of 2.0.0) has 3 different displays:
+- ### **Distance**
+  Displays the distance from your eye to enemy hitbox
+- ### **Hit Distance**
+  Displays the distance of your last hit
+- ### **Average Hit Distance**
+  The average of either last X hits or local/global session hit distances
+
+## **Dependencies** 
+- [Midnightlib]([https://modrinth.com/mod/cloth-config](https://modrinth.com/mod/midnightlib/versions?l=fabric))
+
+## **Future**
+I will continue supporting the mod for 1.17+, if you would like more options added then please request them
