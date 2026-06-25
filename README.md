@@ -5,7 +5,7 @@
 [![Java](https://img.shields.io/badge/Java-17-orange?logo=java)](build.gradle)
 [![Fabric](https://img.shields.io/badge/Fabric-1.20-blue?logo=fabric)](build.gradle)
 [![Minecraft](https://img.shields.io/badge/Minecraft-1.20-green?logo=minecraft)](https://minecraft.net)
-[![Modrinth](https://img.shields.io/badge/Modrinth-ReachDisplay-00d562?logo=modrinth)](https://modrinth.com/mod/reachdisplay)
+[![Modrinth](https://img.shields.io/badge/Modrinth-ReachDisplay-00d562?logo=modrinth)](https://modrinth.com/mod/reach-display)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Wolren/ReachDisplay/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Wolren/ReachDisplay)
 [![Socket](https://img.shields.io/badge/Socket-Supply%20Chain%20Security-333?logo=socketdotdev)](https://socket.dev)
 
