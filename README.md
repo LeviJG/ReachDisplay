@@ -1,3 +1,12 @@
+[![License](https://img.shields.io/github/license/Wolren/ReachDisplay)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/Wolren/ReachDisplay)](https://github.com/Wolren/ReachDisplay/commits)
+[![Issues](https://img.shields.io/github/issues/Wolren/ReachDisplay)](https://github.com/Wolren/ReachDisplay/issues)
+[![Repo size](https://img.shields.io/github/repo-size/Wolren/ReachDisplay)](https://github.com/Wolren/ReachDisplay)
+[![Java](https://img.shields.io/badge/Java-17-orange?logo=java)](build.gradle)
+[![Fabric](https://img.shields.io/badge/Fabric-1.20-blue?logo=fabric)](build.gradle)
+[![Minecraft](https://img.shields.io/badge/Minecraft-1.20-green?logo=minecraft)](https://minecraft.net)
+[![Modrinth](https://img.shields.io/badge/Modrinth-ReachDisplay-00d562?logo=modrinth)](https://modrinth.com/mod/reachdisplay)
+
 ## **General**
 The goal of this mod is to allow you to display the distance between you and the enemy player/mob + see from how far your hits reached them. It's useful information that allows one to control combo distances and align look angles to optimise the distance. Everything — text size, color, placement, shadow, decimal places — is configurable.
 
@@ -16,4 +25,3 @@ The mod (as of 2.0.0) has 3 different displays:
 
 ## **Future**
 I will continue supporting the mod for 1.17+, if you would like more options added then please request them
-
