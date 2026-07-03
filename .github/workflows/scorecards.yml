@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 0 * * 0'
   push:
-    branches: [1.20]
+    branches: [ 1.20 ]
 
 permissions: read-all
 

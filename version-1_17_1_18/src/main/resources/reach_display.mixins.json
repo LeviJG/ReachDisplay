@@ -6,8 +6,8 @@
   "mixins": [
   ],
   "client": [
-    "PlayerAttackMixin",
-    "InGameHudMixin"
+    "InGameHudMixin",
+    "PlayerAttackMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,15 +1,16 @@
 package net.wolren.reach_display;
 
-import eu.midnightdust.lib.config.MidnightConfig;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.wolren.reach_display.config.DisplayConfig;
+import net.wolren.reach_display.data.SharedData;
 
-@Environment(EnvType.CLIENT)
-public class ReachDisplayClient  implements ClientModInitializer {
+public class ReachDisplayClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
-
+        ClientLifecycleEvents.CLIENT_STOPPING.register(mc -> {
+            SharedData.getInstance().close();
+        });
+        DisplayConfig.init("reach_display", DisplayConfig.class);
     }
 }

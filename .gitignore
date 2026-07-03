@@ -1,6 +1,20 @@
-# Project exclude paths
-/.gradle/
-/.idea/
-build/
-/run/
+# IDE - IntelliJ IDEA
+.idea/
 *.iml
+*.ipr
+*.iws
+out/
+
+# Gradle
+.gradle/
+build/
+
+# Minecraft run directories
+run/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log

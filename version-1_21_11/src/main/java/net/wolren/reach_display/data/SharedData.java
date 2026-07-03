@@ -10,15 +10,19 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class SharedData {
+    private static final String GLOBAL_AVERAGE_FILE_NAME = "global_average_hits.txt";
     private static SharedData instance;
+    private final Queue<Double> lastHitsDistance = new LinkedList<>();
     private double localAverageDistance = 0;
     private int localAverageHitCount = 0;
-    private final Queue<Double> lastHitsDistance = new LinkedList<>();
     private double averageDistance = 0;
-    private static final String GLOBAL_AVERAGE_FILE_NAME = "global_average_hits.txt";
     private double distance;
     private Entity entity;
     private PrintWriter writer;
+    private double globalSum = 0;
+    private int globalCount = 0;
+    private boolean globalCacheLoaded = false;
+    private long lastHitTimestamp = 0;
 
     private SharedData() {
         Path configDir = FabricLoader.getInstance().getConfigDir();
@@ -50,33 +54,38 @@ public class SharedData {
                 averageDistance = localAverageDistance / localAverageHitCount;
             }
             case GLOBAL_AVERAGE -> {
+                if (!globalCacheLoaded) {
+                    Path configDir = FabricLoader.getInstance().getConfigDir();
+                    File globalAverageFile = configDir.resolve(GLOBAL_AVERAGE_FILE_NAME).toFile();
+                    if (globalAverageFile.exists()) {
+                        try (BufferedReader reader = new BufferedReader(new FileReader(globalAverageFile))) {
+                            String line;
+                            while ((line = reader.readLine()) != null) {
+                                String[] distances = line.split(", ");
+                                for (String distanceStr : distances) {
+                                    if (!distanceStr.trim().isEmpty()) {
+                                        globalSum += Double.parseDouble(distanceStr);
+                                        globalCount++;
+                                    }
+                                }
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    globalCacheLoaded = true;
+                }
+
                 writer.append(Double.toString(distance)).append(", ");
                 writer.flush();
 
-                Path configDir = FabricLoader.getInstance().getConfigDir();
-                File globalAverageFile = configDir.resolve(GLOBAL_AVERAGE_FILE_NAME).toFile();
-
-                try (BufferedReader reader = new BufferedReader(new FileReader(globalAverageFile))) {
-                    String line;
-                    double sum = 0;
-                    int count = 0;
-                    while ((line = reader.readLine()) != null) {
-                        String[] distances = line.split(", ");
-                        for (String distanceStr : distances) {
-                            if (!distanceStr.trim().isEmpty()) {
-                                sum += Double.parseDouble(distanceStr);
-                                count++;
-                            }
-                        }
-                    }
-                    averageDistance = count > 0 ? sum / count : 0;
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                globalSum += distance;
+                globalCount++;
+                averageDistance = globalSum / globalCount;
             }
             case LAST_HITS -> {
                 this.lastHitsDistance.add(distance);
-                if (this.lastHitsDistance.size() > DisplayConfig.averageNumberOfHitsCounted) {
+                while (this.lastHitsDistance.size() > DisplayConfig.averageNumberOfHitsCounted) {
                     this.lastHitsDistance.poll();
                 }
                 averageDistance = calculateAverageLastHitsDistance();
@@ -102,5 +111,24 @@ public class SharedData {
 
     public Entity getEntity() {
         return entity;
+    }
+
+    public void close() {
+        if (writer != null) {
+            writer.close();
+        }
+    }
+
+    public long getLastHitTimestamp() {
+        return lastHitTimestamp;
+    }
+
+    public void setLastHitTimestamp(long timestamp) {
+        this.lastHitTimestamp = timestamp;
+    }
+
+    public boolean isLastHitExpired(long timeoutMs) {
+        if (lastHitTimestamp == 0) return true;
+        return System.currentTimeMillis() - lastHitTimestamp > timeoutMs;
     }
 }

@@ -19,8 +19,9 @@ A clear description of what you expected to happen.
 If applicable, add screenshots.
 
 **Environment (please complete):**
- - OS: [e.g. Windows 10]
- - Version: [e.g. v1.0.0]
+
+- OS: [e.g. Windows 10]
+- Version: [e.g. v1.0.0]
 
 **Additional context**
 Add any other context about the problem here.
