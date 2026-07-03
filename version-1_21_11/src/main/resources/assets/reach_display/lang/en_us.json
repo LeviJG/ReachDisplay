@@ -1,0 +1,17 @@
+{
+  "reach_display.midnightconfig.title": "Reach Display",
+  "reach_display.midnightconfig.other": "All the appearance options for displays are in their corresponding tabs",
+
+  "reach_display.midnightconfig.category.basic": "Basic",
+  "reach_display.midnightconfig.category.distance": "Distance",
+  "reach_display.midnightconfig.category.3hitDistance": "Hit Distance",
+  "reach_display.midnightconfig.category.averageHitDistance": "Average",
+
+  "reach_display.midnightconfig.showPlayers.tooltip": "Whether only distances to players should be shown",
+  "reach_display.midnightconfig.averageHitMode.tooltip": "Local Average: Counts all the hits in a given session\n\nGlobal Average: Counts lifetime hits (saved in a txt file)\n\nLast Hits: Counts last X hits (defined by the field below)",
+  "reach_display.midnightconfig.averageNumberOfHitsCounted.tooltip": "Determines number of hits counting towards Last Hits average",
+
+  "reach_display.midnightconfig.enum.AverageModeEnum.LOCAL_AVERAGE": "Local Average",
+  "reach_display.midnightconfig.enum.AverageModeEnum.GLOBAL_AVERAGE": "Global Average",
+  "reach_display.midnightconfig.enum.AverageModeEnum.LAST_HITS": "Last Hits"
+}

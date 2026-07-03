@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "reach_display",
+  "version": "${version}",
+  "name": "Reach Display",
+  "description": "A configurable visual representation of your reach and hit distances",
+  "authors": [
+    "Wolren"
+  ],
+  "contact": {
+    "homepage": "https://modrinth.com/project/reach-display",
+    "sources": "https://github.com/Wolren/ReachDisplay",
+    "repo": "https://github.com/Wolren/ReachDisplay",
+    "issues": "https://github.com/Wolren/ReachDisplay/issues"
+  },
+  "license": "GPL-3.0",
+  "icon": "assets/reach_display/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.wolren.reach_display.ReachDisplayClient"
+    ],
+    "main": [
+      "net.wolren.reach_display.ReachDisplay"
+    ]
+  },
+  "mixins": [
+    "reach_display.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": ">=1.19.1 <=1.19.4",
+    "midnightlib": ">=1.0.0-fabric"
+  }
+}
