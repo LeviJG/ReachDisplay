@@ -1,20 +1,31 @@
 name: CI
-
 on:
   push:
-    branches: [ 1.20 ]
+    branches: [1.20]
   pull_request:
-    branches: [ 1.20 ]
+    branches: [1.20]
+  workflow_dispatch:
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
 
 jobs:
-  test:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        subproject:
+          - version-1_17_1_18
+          - version-1_19
+          - version-1_20_1
+          - version-1_21_11
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
-      - name: Build with Gradle
-        run: ./gradlew build --no-daemon
+      - name: Build ${{ matrix.subproject }}
+        run: ./gradlew :${{ matrix.subproject }}:build --no-daemon
