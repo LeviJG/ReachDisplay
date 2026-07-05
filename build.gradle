@@ -7,7 +7,7 @@ version = project.mod_version
 group = project.maven_group
 
 tasks.named('jar', Jar) {
-    archiveBaseName.set("ReachDisplay")
+    archiveBaseName.set("AdvancedReachDisplay")
     from("LICENSE") {
         rename { "${it}_${archiveBaseName.get()}" }
     }

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "reach_display",
+  "id": "advanced_reach_display",
   "version": "${version}",
-  "name": "Reach Display",
+  "name": "Advanced Reach Display",
   "description": "A configurable visual representation of your reach and hit distances",
   "authors": [
     "Wolren, Blueskiez77"
@@ -27,6 +27,6 @@
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
     "minecraft": ">=26.1",
-    "yet_another_config_lib_v3": ">=3-3.9.4+26.1-fabric"
+    "yet_another_config_lib_v3": ">=3-3.9.5+26.1-fabric"
   }
 }
