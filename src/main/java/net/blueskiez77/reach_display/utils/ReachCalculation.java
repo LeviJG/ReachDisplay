@@ -1,5 +1,6 @@
 package net.blueskiez77.reach_display.utils;
 
+import net.blueskiez77.reach_display.config.DisplayConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -7,7 +8,6 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
-import net.blueskiez77.reach_display.config.DisplayConfig;
 
 import static net.blueskiez77.reach_display.config.DisplayConfig.DistanceCalculationMethod.RAY_HIT_POINT;
 
@@ -15,7 +15,8 @@ public class ReachCalculation {
 
     public static double MeasureReach(Player player, Entity target){
 
-        DisplayConfig.DistanceCalculationMethod distanceCalculationMethod = DisplayConfig.distanceCalculationMethod;
+        DisplayConfig displayConfig = DisplayConfig.INSTANCE;
+        DisplayConfig.DistanceCalculationMethod distanceCalculationMethod = displayConfig.distanceCalculationMethod;
         Minecraft client = Minecraft.getInstance();
         HitResult result = client.hitResult;
 

@@ -1,5 +1,6 @@
 package net.blueskiez77.reach_display.mixin;
 
+import net.blueskiez77.reach_display.config.DisplayConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Gui;
@@ -8,7 +9,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.blueskiez77.reach_display.config.DisplayConfig;
 import net.blueskiez77.reach_display.data.SharedData;
 import net.blueskiez77.reach_display.utils.CustomRender;
 import org.spongepowered.asm.mixin.Final;
@@ -24,25 +24,26 @@ public abstract class GuiMixin {
 
     @Shadow
     @Final
-    private Minecraft minecraft; //= Minecraft.getInstance();
+    private Minecraft minecraft;
 
     @Inject(at = @At("TAIL"), method = "extractRenderState")
     public void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter, CallbackInfo ci) {
-        if (!DisplayConfig.enabled) return;
+        DisplayConfig displayConfig = DisplayConfig.INSTANCE;
+        if (!displayConfig.enabled) return;
         Player player = minecraft.player;
         HitResult target = minecraft.hitResult;
         if (player == null || target == null) return;
 
         SharedData sharedData = SharedData.getInstance();
 
-        if(DisplayConfig.distanceEnable){
+        if(displayConfig.distanceEnabled){
             if (target.getType() == HitResult.Type.ENTITY){
                 Entity targetEntity = ((EntityHitResult) target).getEntity();
                 if (!targetEntity.isInvisibleTo(player)){
-                    if (!DisplayConfig.showPlayersOnly || targetEntity instanceof Player){
+                    if (!displayConfig.showPlayersOnly || targetEntity instanceof Player){
                         double reachDistance = MeasureReach(player, targetEntity);
                         if (reachDistance != -1) {
-                            CustomRender.renderText(minecraft, graphics, reachDistance, DisplayConfig.distanceDecimalPlaces, 0, DisplayConfig.distanceShadow, DisplayConfig.distanceScale, DisplayConfig.xOffset, DisplayConfig.yOffset);
+                            CustomRender.renderText(minecraft, graphics, reachDistance, displayConfig.distanceDecimalPlaces, 0, displayConfig.distanceTextShadow, displayConfig.distanceTextScale, displayConfig.distanceXOffset, displayConfig.distanceYOffset);
                         }
                     }
                 }
@@ -50,28 +51,28 @@ public abstract class GuiMixin {
         }
 
         if (sharedData.getEntity() == null){
-            return;
+           return;
         }
 
-        if (DisplayConfig.hitDistanceEnable) {
-            int hitDistanceDecimalPlaces = DisplayConfig.hitDistanceDecimalPlaces;
+        if (displayConfig.hitDistanceEnabled) {
+            int hitDistanceDecimalPlaces = displayConfig.hitDistanceDecimalPlaces;
             double reachDistance = sharedData.getDistance();
-            boolean shadow = DisplayConfig.hitDistanceShadow;
-            float scale = DisplayConfig.hitDistanceScale;
-            int xOffset = DisplayConfig.hitXOffset;
-            int yOffset = DisplayConfig.hitYOffset;
+            boolean shadow = displayConfig.hitDistanceTextShadow;
+            float scale = displayConfig.hitDistanceTextScale;
+            double xOffset = displayConfig.hitXOffset;
+            double yOffset = displayConfig.hitYOffset;
 
             CustomRender.renderText(minecraft, graphics, reachDistance, hitDistanceDecimalPlaces, 1, shadow, scale, xOffset, yOffset);
         }
 
-        if (DisplayConfig.averageHitDistanceEnable) {
+        if (displayConfig.averageHitEnabled) {
 
-            int averageHitDistanceDecimalPlaces = DisplayConfig.averageHitDistanceDecimalPlaces;
+            int averageHitDistanceDecimalPlaces = displayConfig.averageHitDecimalPlaces;
             double reachDistance = sharedData.getAverageDistance();
-            boolean shadow = DisplayConfig.averageHitDistanceShadow;
-            float scale = DisplayConfig.averageHitDistanceScale;
-            int xOffset = DisplayConfig.averageHitXOffset;
-            int yOffset = DisplayConfig.averageHitYOffset;
+            boolean shadow = displayConfig.averageHitTextShadow;
+            float scale = displayConfig.averageHitTextScale;
+            double xOffset = displayConfig.averageHitXOffset;
+            double yOffset = displayConfig.averageHitYOffset;
 
             CustomRender.renderText(minecraft, graphics, reachDistance, averageHitDistanceDecimalPlaces, 2, shadow, scale, xOffset, yOffset);
         }

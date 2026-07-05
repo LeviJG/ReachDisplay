@@ -1,8 +1,8 @@
 package net.blueskiez77.reach_display.utils;
 
+import net.blueskiez77.reach_display.config.DisplayConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.blueskiez77.reach_display.config.DisplayConfig;
 import org.jetbrains.annotations.UnknownNullability;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -14,18 +14,19 @@ import net.minecraft.client.gui.Font;
 
 public class CustomRender {
     private static final Map<Integer, DecimalFormat> FORMATTER_CACHE = new HashMap<>();
-    private static String cachedDistanceColorHex;
-    private static float cachedDistanceOpacityScale;
+    private static int cachedDistanceColorInt;
+    private static double cachedDistanceOpacityScale;
     private static int cachedDistanceARGBColor;
-    private static String cachedHitDistanceColorHex;
-    private static float cachedHitDistanceOpacityScale;
+    private static int cachedHitDistanceColorInt;
+    private static double cachedHitDistanceOpacityScale;
     private static int cachedHitDistanceARGBColor;
-    private static String cachedAverageHitDistanceColorHex;
-    private static float cachedAverageHitDistanceOpacityScale;
+    private static int cachedAverageHitDistanceColorInt;
+    private static double cachedAverageHitDistanceOpacityScale;
     private static int cachedAverageHitDistanceARGBColor;
+    private static final int MARGIN = 4, PADDING = 2;
 
     /// textClass values mapping: 0 = distance; 1 = hitDistance; 2 = averageHitDistance
-    public static void renderText(Minecraft minecraft, @UnknownNullability GuiGraphicsExtractor context, double displayDouble, int displayDecimalPlaces, int textClass, boolean shadow, float scale, int xOffset, int yOffset){
+    public static void renderText(Minecraft minecraft, @UnknownNullability GuiGraphicsExtractor context, double displayDouble, int displayDecimalPlaces, int textClass, boolean shadow, float scale, double xOffset, double yOffset){
         String roundedDisplayDouble = getRoundedDouble(displayDouble, displayDecimalPlaces);
 
         int color = switch (textClass) {
@@ -35,8 +36,17 @@ public class CustomRender {
             default -> 0xFFFFFF;
         };
 
-        float y = (minecraft.getWindow().getGuiScaledHeight() / 2.0F) - yOffset;
-        float x = (minecraft.getWindow().getGuiScaledWidth() / 2.0F - ((minecraft.font.width(roundedDisplayDouble) / 2.0F) * scale) - xOffset);
+        int windowWidth = minecraft.getWindow().getGuiScaledWidth();
+        int windowHeight = minecraft.getWindow().getGuiScaledHeight();
+
+        int boxW = (int)(minecraft.font.width(roundedDisplayDouble) * scale) + PADDING * 2;
+        int boxH = (int)(minecraft.font.lineHeight * scale) + PADDING * 2;
+
+        int availX = Math.max(0, windowWidth - boxW - MARGIN * 2);
+        int availY = Math.max(0, windowHeight - boxH - MARGIN * 2);
+
+        float x = MARGIN + (float)(xOffset * availX) + PADDING;
+        float y = MARGIN + (float)(yOffset * availY) + PADDING;
 
         context.pose().pushMatrix();
         context.pose().scale(scale, scale);
@@ -69,28 +79,17 @@ public class CustomRender {
         return Minecraft.getInstance().font;
     }
 
-    private static int parseColorWithDefault(String colorHex) {
-        if (colorHex.isEmpty()) return 0xFFFFFF;
-        try {
-            return (int) Long.parseLong(colorHex, 16);
-        } catch (NumberFormatException e) {
-            return 0xFFFFFF;
-        }
-    }
-
-    private static int parseARGBColorWithOpacity(String colorHex, float opacityScale) {
-        if (colorHex.isEmpty()) return 0xFFFFFF;
-        int colorInt = parseColorWithDefault(colorHex);
+    private static int parseARGBColorWithOpacity(int colorInt, double opacityScale) {
         int alpha = (int) (opacityScale * 255) & 0xFF;
         return (alpha << 24) | (colorInt & 0xFFFFFF);
     }
 
     private static int getDistanceARGBColor() {
-        String colorHex = DisplayConfig.distanceColor;
-        float opacityScale = DisplayConfig.distanceOpacity;
-        if (!Objects.equals(colorHex, cachedDistanceColorHex) || opacityScale != cachedDistanceOpacityScale) {
-            int ARGBColorInt = parseARGBColorWithOpacity(colorHex, opacityScale);
-            cachedDistanceColorHex = colorHex;
+        int colorInt = DisplayConfig.INSTANCE.distanceTextColor;
+        double opacityScale = DisplayConfig.INSTANCE.distanceTextOpacity;
+        if (!Objects.equals(colorInt, cachedDistanceColorInt) || opacityScale != cachedDistanceOpacityScale) {
+            int ARGBColorInt = parseARGBColorWithOpacity(colorInt, opacityScale);
+            cachedDistanceColorInt = colorInt;
             cachedDistanceOpacityScale = opacityScale;
             cachedDistanceARGBColor = ARGBColorInt;
         }
@@ -98,11 +97,11 @@ public class CustomRender {
     }
 
     private static int getHitDistanceARGBColor(){
-        String colorHex = DisplayConfig.hitDistanceColor;
-        float opacityScale = DisplayConfig.hitDistanceOpacity;
-        if (!Objects.equals(colorHex, cachedHitDistanceColorHex) || opacityScale != cachedHitDistanceOpacityScale) {
-            int ARGBColorInt = parseARGBColorWithOpacity(colorHex, opacityScale);
-            cachedHitDistanceColorHex = colorHex;
+        int colorInt = DisplayConfig.INSTANCE.hitDistanceTextColor;
+        double opacityScale = DisplayConfig.INSTANCE.hitDistanceTextOpacity;
+        if (!Objects.equals(colorInt, cachedHitDistanceColorInt) || opacityScale != cachedHitDistanceOpacityScale) {
+            int ARGBColorInt = parseARGBColorWithOpacity(colorInt, opacityScale);
+            cachedHitDistanceColorInt = colorInt;
             cachedHitDistanceOpacityScale = opacityScale;
             cachedHitDistanceARGBColor = ARGBColorInt;
         }
@@ -110,11 +109,11 @@ public class CustomRender {
     }
 
     private static int getAverageHitDistanceARGBColor() {
-        String colorHex = DisplayConfig.averageHitDistanceColor;
-        float opacityScale = DisplayConfig.averageHitDistanceOpacity;
-        if (!Objects.equals(colorHex, cachedAverageHitDistanceColorHex) || opacityScale != cachedAverageHitDistanceOpacityScale) {
-            int ARGBColorInt = parseARGBColorWithOpacity(colorHex, opacityScale);
-            cachedAverageHitDistanceColorHex = colorHex;
+        int colorInt = DisplayConfig.INSTANCE.averageHitTextColor;
+        double opacityScale = DisplayConfig.INSTANCE.averageHitTextOpacity;
+        if (!Objects.equals(colorInt, cachedAverageHitDistanceColorInt) || opacityScale != cachedAverageHitDistanceOpacityScale) {
+            int ARGBColorInt = parseARGBColorWithOpacity(colorInt, opacityScale);
+            cachedAverageHitDistanceColorInt = colorInt;
             cachedAverageHitDistanceOpacityScale = opacityScale;
             cachedAverageHitDistanceARGBColor = ARGBColorInt;
         }

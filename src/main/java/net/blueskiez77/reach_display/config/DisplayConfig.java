@@ -1,108 +1,47 @@
 package net.blueskiez77.reach_display.config;
 
-import eu.midnightdust.lib.config.MidnightConfig;
+public class DisplayConfig {
 
-public class DisplayConfig extends MidnightConfig {
-    @Entry(category = "basic", name = "Enable")
-    public static boolean enabled = true;
+    public static final DisplayConfig INSTANCE = new DisplayConfig();
+    public enum DistanceCalculationMethod { CLOSEST_POINT, RAY_HIT_POINT }
+    public enum AverageMode { LOCAL_AVERAGE, LAST_HITS }
 
-    @Entry(category = "basic", name = "Show Players Only")
-    public static boolean showPlayersOnly = true;
+    // -------------------- INTERNAL -------------------- //
+    public double distanceXOffset = 0.5;
+    public double distanceYOffset = 0.55;
+    public double hitXOffset = 0.5;                     // Change these values for default
+    public double hitYOffset = 0.65;
+    public double averageHitXOffset = 0.5;
+    public double averageHitYOffset = 0.9;
 
-    public enum DistanceCalculationMethod {
-        RAY_HIT_POINT,
-        CLOSEST_POINT,
-    }
-    @Entry(category = "basic", name = "Distance Calculation Method")
-    public static DistanceCalculationMethod distanceCalculationMethod = DistanceCalculationMethod.CLOSEST_POINT;
+    // -------------------- GENERAL -------------------- //
+    public boolean enabled = true;
+    public boolean showPlayersOnly = true;
+    public DistanceCalculationMethod distanceCalculationMethod = DistanceCalculationMethod.CLOSEST_POINT;
 
-    //@Comment(category = "distance") public static Comment spacer1;
+    // -------------------- DISTANCE -------------------- //
+    public boolean distanceEnabled = true;
+    public float distanceTextScale = 1.0f;
+    public int distanceTextColor = 0xFFFFFF;
+    public double distanceTextOpacity = 1.0;
+    public boolean distanceTextShadow = false;
+    public int distanceDecimalPlaces = 2;
 
-    @Entry(category = "distance", name = "Enable Distance Display")
-    public static boolean distanceEnable = true;
+    // -------------------- HIT DISTANCE -------------------- //
+    public boolean hitDistanceEnabled = true;
+    public float hitDistanceTextScale = 1.0f;
+    public int hitDistanceTextColor = 0xFFFFFF;
+    public double hitDistanceTextOpacity = 1.0;
+    public boolean hitDistanceTextShadow = false;
+    public int hitDistanceDecimalPlaces = 2;
 
-    @Entry(category = "distance", name = "Distance Scale", isSlider = true, min = 0.1f, max = 5f, precision = 10)
-    public static float distanceScale = 1.0f;
-
-    @Entry(category = "distance", name = "Distance X Offset", min = Integer.MIN_VALUE, max = Integer.MAX_VALUE)
-    public static int xOffset = 0;
-
-    @Entry(category = "distance", name = "Distance Y Offset", min = Integer.MIN_VALUE, max = Integer.MAX_VALUE)
-    public static int yOffset = -10;
-
-    @Entry(category = "distance", name = "Distance Color", isColor = true)
-    public static String distanceColor = "FFFFFF";
-
-    @Entry(category = "distance", name = "Distance Opacity", isSlider = true, min = 0.0f, max = 1.0f)
-    public static  float distanceOpacity = 1.0f;
-
-    @Entry(category = "distance", name = "Distance Text Shadow")
-    public static boolean distanceShadow = false;
-
-    @Entry(category = "distance", name = "Distance Decimal Places", min = 1, max = 16)
-    public static int distanceDecimalPlaces = 2;
-
-    @Entry(category = "3hitDistance", name = "Enable Hit Distance Display")
-    public static boolean hitDistanceEnable = true;
-
-    //@Comment(category = "3hitDistance") public static Comment spacer2;
-
-    @Entry(category = "3hitDistance", name = "Hit Distance Scale", isSlider = true, min = 0.1f, max = 5f, precision = 10)
-    public static float hitDistanceScale = 1.0f;
-
-    @Entry(category = "3hitDistance", name = "Hit Distance X Offset", min = Integer.MIN_VALUE, max = Integer.MAX_VALUE)
-    public static int hitXOffset = 0;
-
-    @Entry(category = "3hitDistance", name = "Hit Distance Y Offset", min = Integer.MIN_VALUE, max = Integer.MAX_VALUE)
-    public static int hitYOffset = -30;
-
-    @Entry(category = "3hitDistance", name = "Hit Distance Color", isColor = true)
-    public static String hitDistanceColor = "FFFFFF";
-
-    @Entry(category = "3hitDistance", name = "Hit Distance Opacity", isSlider = true, min = 0.0f, max = 1.0f)
-    public static  float hitDistanceOpacity = 1.0f;
-
-    @Entry(category = "3hitDistance", name = "Hit Distance Text Shadow")
-    public static boolean hitDistanceShadow = false;
-
-    @Entry(category = "3hitDistance", name = "Hit Distance Decimal Places", min = 1, max = 16)
-    public static int hitDistanceDecimalPlaces = 2;
-
-    @Entry(category = "averageHitDistance", name = "Enable Average Hit Distance")
-    public static boolean averageHitDistanceEnable = false;
-
-    //@Comment(category = "averageHitDistance") public static Comment spacer3;
-
-    @Entry(category = "averageHitDistance", name = "Average Hit Mode")
-    public static AverageModeEnum averageHitMode = AverageModeEnum.LAST_HITS;
-
-    public enum AverageModeEnum {
-        LOCAL_AVERAGE, LAST_HITS
-    }
-
-    @Entry(category = "averageHitDistance", name = "Number Of Hits Counted", min = 2, max = 32767)
-    public static int averageNumberOfHitsCounted = 3;
-
-    //@Comment(category = "averageHitDistance") public static Comment spacer4;
-
-    @Entry(category = "averageHitDistance", name = "Average Hit Distance Scale", isSlider = true, min = 0.1f, max = 5f, precision = 10)
-    public static float averageHitDistanceScale = 1.0f;
-
-    @Entry(category = "averageHitDistance", name = "Average Hit Distance X Offset", min = Integer.MIN_VALUE, max = Integer.MAX_VALUE)
-    public static int averageHitXOffset = 0;
-
-    @Entry(category = "averageHitDistance", name = "Average Hit Distance Y Offset", min = Integer.MIN_VALUE, max = Integer.MAX_VALUE)
-    public static int averageHitYOffset = -80;
-
-    @Entry(category = "averageHitDistance", name = "Average Hit Distance Color", isColor = true)
-    public static String averageHitDistanceColor = "FFFFFF";
-
-    @Entry(category = "averageHitDistance", name = "Average Hit Distance Opacity", isSlider = true, min = 0.0f, max = 1.0f)
-    public static  float averageHitDistanceOpacity = 1.0f;
-
-    @Entry(category = "averageHitDistance", name = "Average Hit Distance Text Shadow")
-    public static boolean averageHitDistanceShadow = false;
-
-    @Entry(category = "averageHitDistance", name = "Average Hit Distance Decimal Places", min = 1, max = 16)
-    public static int averageHitDistanceDecimalPlaces = 2;
+    // -------------------- AVERAGE HIT DISTANCE -------------------- //
+    public boolean averageHitEnabled = false;
+    public AverageMode averageHitMode = AverageMode.LAST_HITS;
+    public int numberOfHitsCounted = 5;
+    public float averageHitTextScale = 1.0f;
+    public int averageHitTextColor = 0xFFFFFF;
+    public double averageHitTextOpacity = 1.0;
+    public boolean averageHitTextShadow = false;
+    public int averageHitDecimalPlaces = 2;
 }

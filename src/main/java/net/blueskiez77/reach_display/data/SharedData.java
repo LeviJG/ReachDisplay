@@ -1,7 +1,7 @@
 package net.blueskiez77.reach_display.data;
 
-import net.minecraft.world.entity.Entity;
 import net.blueskiez77.reach_display.config.DisplayConfig;
+import net.minecraft.world.entity.Entity;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -29,7 +29,7 @@ public class SharedData {
     }
 
     public void addDistanceToAverage(double distance) {
-        switch (DisplayConfig.averageHitMode) {
+        switch (DisplayConfig.INSTANCE.averageHitMode) {
             case LOCAL_AVERAGE -> {
                 localAverageDistance += distance;
                 localAverageHitCount++;
@@ -37,7 +37,7 @@ public class SharedData {
             }
             case LAST_HITS -> {
                 this.lastHitsDistance.add(distance);
-                while (this.lastHitsDistance.size() > DisplayConfig.averageNumberOfHitsCounted) {
+                while (this.lastHitsDistance.size() > DisplayConfig.INSTANCE.numberOfHitsCounted) {
                     this.lastHitsDistance.poll();
                 }
                 averageDistance = calculateAverageLastHitsDistance();
