@@ -181,6 +181,6 @@ public class HUDConfig extends Screen {
         c.averageHitXOffset = tempX[2];  c.averageHitYOffset = tempY[2];
 
         ConfigManager.save();
-        Minecraft.getInstance().setScreen(parent);
+        Minecraft.getInstance().setScreenAndShow(parent);
     }
 }

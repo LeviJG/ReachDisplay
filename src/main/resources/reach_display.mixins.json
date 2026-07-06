@@ -7,7 +7,6 @@
   ],
   "client": [
     "PlayerAttackMixin",
-    "GuiMixin",
     "SpearAttackMixin"
   ],
   "injectors": {

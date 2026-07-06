@@ -1,33 +1,30 @@
-package net.blueskiez77.reach_display.mixin;
+package net.blueskiez77.reach_display.utils;
 
+import net.blueskiez77.reach_display.ReachDisplay;
 import net.blueskiez77.reach_display.config.DisplayConfig;
-import net.minecraft.client.Minecraft;
+import net.blueskiez77.reach_display.data.SharedData;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.DeltaTracker;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.blueskiez77.reach_display.data.SharedData;
-import net.blueskiez77.reach_display.utils.CustomRender;
-import org.spongepowered.asm.mixin.Final;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import static net.blueskiez77.reach_display.utils.ReachCalculation.MeasureReach;
+import net.minecraft.client.Minecraft;
 
-@Mixin(Gui.class)
-public abstract class GuiMixin {
+public class HUDRenderer {
+    public static void register() {
+        HudElementRegistry.attachElementBefore(
+                VanillaHudElements.CHAT,
+                Identifier.fromNamespaceAndPath(ReachDisplay.MOD_ID, "reach_display"),
+                (graphics, deltaTracker) -> render(graphics)
+        );
+    }
 
-    @Shadow
-    @Final
-    private Minecraft minecraft;
-
-    @Inject(at = @At("TAIL"), method = "extractRenderState")
-    public void render(GuiGraphicsExtractor graphics, DeltaTracker tickCounter, CallbackInfo ci) {
+    private static void render(GuiGraphicsExtractor graphics) {
+        Minecraft minecraft = Minecraft.getInstance();
         DisplayConfig displayConfig = DisplayConfig.INSTANCE;
         if (!displayConfig.enabled) return;
         Player player = minecraft.player;
@@ -51,7 +48,7 @@ public abstract class GuiMixin {
         }
 
         if (sharedData.getEntity() == null){
-           return;
+            return;
         }
 
         if (displayConfig.hitDistanceEnabled) {
