@@ -166,7 +166,7 @@ public class ConfigGUI {
                                 .description(OptionDescription.of(Component.literal("The number of hits counted in the average")))
                                 .binding(5, () -> c.numberOfHitsCounted, v -> c.numberOfHitsCounted = v)
                                 .controller(opt -> IntegerFieldControllerBuilder.create(opt)
-                                        .range(1, 1024))
+                                        .range(2, 1024))
                                 .build())
                         .option(Option.<Float>createBuilder()
                                 .name(Component.literal("Scale"))
