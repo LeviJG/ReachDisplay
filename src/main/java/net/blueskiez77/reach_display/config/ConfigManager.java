@@ -33,7 +33,7 @@ public class ConfigManager {
                 // -------------------- Load General Vars -------------------- //
                 displayConfig.enabled = loaded.enabled;
                 displayConfig.showPlayersOnly = loaded.showPlayersOnly;
-                displayConfig.distanceCalculationMethod = DisplayConfig.DistanceCalculationMethod.CLOSEST_POINT;
+                displayConfig.distanceCalculationMethod = loaded.distanceCalculationMethod;
 
                 // -------------------- Load Distance Vars -------------------- //
                 displayConfig.distanceEnabled = loaded.distanceEnabled;
