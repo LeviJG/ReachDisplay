@@ -1,3 +1,4 @@
+/*
 package net.blueskiez77.reach_display.config;
 
 import dev.isxander.yacl3.api.*;
@@ -209,4 +210,4 @@ public class ConfigGUI {
                 .build()
                 .generateScreen(parent);
     }
-}
+}*/

@@ -1,3 +1,4 @@
+/*
 package net.blueskiez77.reach_display.config;
 
 import net.blueskiez77.reach_display.data.SharedData;
@@ -95,7 +96,9 @@ public class HUDConfig extends Screen {
         }
     }
 
-    /* ----- geometry helpers ----- */
+    */
+/* ----- geometry helpers ----- *//*
+
 
     private int boxWidth(int i)  { return this.font.width(label(i)) + PADDING * 2; }
     private int boxHeight()      { return this.font.lineHeight + PADDING * 2; }
@@ -170,7 +173,9 @@ public class HUDConfig extends Screen {
         return super.mouseReleased(event);
     }
 
-    /* ----- close: commit + save ----- */
+    */
+/* ----- close: commit + save ----- *//*
+
 
     @Override
     public void onClose() {
@@ -183,4 +188,4 @@ public class HUDConfig extends Screen {
         ConfigManager.save();
         Minecraft.getInstance().setScreenAndShow(parent);
     }
-}
+}*/
