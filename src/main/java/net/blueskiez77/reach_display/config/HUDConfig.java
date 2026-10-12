@@ -1,6 +1,7 @@
 package net.blueskiez77.reach_display.config;
 
 import net.blueskiez77.reach_display.data.SharedData;
+import net.blueskiez77.reach_display.utils.CustomRender;
 import net.blueskiez77.reach_display.utils.ReachCalculation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -25,9 +26,6 @@ public class HUDConfig extends Screen {
             this.enabled = enabled;
         }
     }
-
-    private static final int MARGIN = 4;
-    private static final int PADDING = 2;
 
     private final Screen parent;
 
@@ -82,7 +80,16 @@ public class HUDConfig extends Screen {
     }
 
     private static String format(double value, int places) {
-        return String.format("%." + Math.max(0, places) + "f", value);
+        return CustomRender.getRoundedDouble(value, places);
+    }
+
+    private float scale(int i) {
+        DisplayConfig c = DisplayConfig.INSTANCE;
+        return switch (i) {
+            case 0 -> c.distanceTextScale;
+            case 1 -> c.hitDistanceTextScale;
+            default -> c.averageHitTextScale;
+        };
     }
 
     public HUDConfig(Screen parent) {
@@ -97,24 +104,20 @@ public class HUDConfig extends Screen {
 
     /* ----- geometry helpers ----- */
 
-    private int boxWidth(int i)  { return this.font.width(label(i)) + PADDING * 2; }
-    private int boxHeight()      { return this.font.lineHeight + PADDING * 2; }
+    private int boxWidth(int i)  { return CustomRender.boxWidth(this.font, label(i), scale(i)); }
+    private int boxHeight(int i) { return CustomRender.boxHeight(this.font, scale(i)); }
 
-    private int pixelX(int i) {
-        int avail = Math.max(0, this.width - boxWidth(i) - MARGIN * 2);
-        return MARGIN + (int) Math.round(tempX[i] * avail);
-    }
-    private int pixelY(int i) {
-        int avail = Math.max(0, this.height - boxHeight() - MARGIN * 2);
-        return MARGIN + (int) Math.round(tempY[i] * avail);
-    }
+    private float boxX(int i) { return CustomRender.boxX(tempX[i], this.width, boxWidth(i)); }
+    private float boxY(int i) { return CustomRender.boxY(tempY[i], this.height, boxHeight(i)); }
+    private int pixelX(int i) { return (int) boxX(i); }
+    private int pixelY(int i) { return (int) boxY(i); }
     private double ratioX(int i, double px) {
-        int avail = Math.max(1, this.width - boxWidth(i) - MARGIN * 2);
-        return Math.clamp((px - MARGIN) / avail, 0.0, 1.0);
+        int avail = Math.max(1, this.width - boxWidth(i) - CustomRender.MARGIN * 2);
+        return Math.clamp((px - CustomRender.MARGIN) / avail, 0.0, 1.0);
     }
     private double ratioY(int i, double py) {
-        int avail = Math.max(1, this.height - boxHeight() - MARGIN * 2);
-        return Math.clamp((py - MARGIN) / avail, 0.0, 1.0);
+        int avail = Math.max(1, this.height - boxHeight(i) - CustomRender.MARGIN * 2);
+        return Math.clamp((py - CustomRender.MARGIN) / avail, 0.0, 1.0);
     }
 
     @Override
@@ -126,15 +129,15 @@ public class HUDConfig extends Screen {
             if (!elements[i].enabled) continue;
             int x = pixelX(i), y = pixelY(i);
             boolean isHovering = posTest(i, mouseX, mouseY);
-            g.fill(x, y, x + boxWidth(i), y + boxHeight(),
+            g.fill(x, y, x + boxWidth(i), y + boxHeight(i),
                     isHovering ? 0xA0303030 : 0x60000000);
-            g.text(this.font, label(i), x + PADDING, y + PADDING, 0xFFFFFFFF, true);
+            CustomRender.drawScaledText(g, label(i), boxX(i) + CustomRender.PADDING, boxY(i) + CustomRender.PADDING, scale(i), 0xFFFFFFFF, true);
         }
     }
 
     private boolean posTest(int i, double mx, double my) {
         int x = pixelX(i), y = pixelY(i);
-        return mx >= x && mx < x + boxWidth(i) && my >= y && my < y + boxHeight();
+        return mx >= x && mx < x + boxWidth(i) && my >= y && my < y + boxHeight(i);
     }
 
 

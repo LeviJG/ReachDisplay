@@ -14,18 +14,23 @@ import static net.blueskiez77.reach_display.config.DisplayConfig.DistanceCalcula
 public class ReachCalculation {
 
     public static double MeasureReach(Player player, Entity target){
+        HitResult result = Minecraft.getInstance().hitResult;
+        Vec3 hitPoint = result instanceof EntityHitResult hitResult ? hitResult.getLocation() : null;
+        return MeasureReach(player, target, hitPoint);
+    }
+
+    /// hitPoint is where the attack ray met the target; null when there is none (RAY_HIT_POINT then returns -1)
+    public static double MeasureReach(Player player, Entity target, Vec3 hitPoint){
 
         DisplayConfig displayConfig = DisplayConfig.INSTANCE;
         DisplayConfig.DistanceCalculationMethod distanceCalculationMethod = displayConfig.distanceCalculationMethod;
-        Minecraft client = Minecraft.getInstance();
-        HitResult result = client.hitResult;
 
         Vec3 eyePos = player.getEyePosition();
         double distance;
 
         if(distanceCalculationMethod == RAY_HIT_POINT){
-            if (!(result instanceof EntityHitResult hitResult)) return -1;
-            distance = player.getEyePosition().distanceTo(hitResult.getLocation());
+            if (hitPoint == null) return -1;
+            distance = eyePos.distanceTo(hitPoint);
         }
         else{
             AABB box = target.getBoundingBox();

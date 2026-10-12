@@ -29,6 +29,7 @@ public class ConfigManager {
                 displayConfig.hitYOffset = loaded.hitYOffset;
                 displayConfig.averageHitXOffset = loaded.averageHitXOffset;
                 displayConfig.averageHitYOffset = loaded.averageHitYOffset;
+                resetOffScreenPositions(displayConfig);
 
                 // -------------------- Load General Vars -------------------- //
                 displayConfig.enabled = loaded.enabled;
@@ -63,6 +64,28 @@ public class ConfigManager {
         } catch (IOException e) {
             // log
         }
+    }
+
+    // Positions are fractions of the screen (0 to 1). Configs from older versions stored pixel offsets
+    // (e.g. hitYOffset = -30), which put the number off-screen where the layout editor can't grab it.
+    private static void resetOffScreenPositions(DisplayConfig c) {
+        DisplayConfig defaults = new DisplayConfig();
+        if (isOffScreen(c.distanceXOffset, c.distanceYOffset)) {
+            c.distanceXOffset = defaults.distanceXOffset;
+            c.distanceYOffset = defaults.distanceYOffset;
+        }
+        if (isOffScreen(c.hitXOffset, c.hitYOffset)) {
+            c.hitXOffset = defaults.hitXOffset;
+            c.hitYOffset = defaults.hitYOffset;
+        }
+        if (isOffScreen(c.averageHitXOffset, c.averageHitYOffset)) {
+            c.averageHitXOffset = defaults.averageHitXOffset;
+            c.averageHitYOffset = defaults.averageHitYOffset;
+        }
+    }
+
+    private static boolean isOffScreen(double x, double y) {
+        return !(x >= 0.0 && x <= 1.0 && y >= 0.0 && y <= 1.0);
     }
 
     public static void save() {

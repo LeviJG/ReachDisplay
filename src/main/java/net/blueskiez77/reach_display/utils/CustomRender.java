@@ -23,7 +23,7 @@ public class CustomRender {
     private static int cachedAverageHitDistanceColorInt;
     private static double cachedAverageHitDistanceOpacityScale;
     private static int cachedAverageHitDistanceARGBColor;
-    private static final int MARGIN = 4, PADDING = 2;
+    public static final int MARGIN = 4, PADDING = 2;
 
     /// textClass values mapping: 0 = distance; 1 = hitDistance; 2 = averageHitDistance
     public static void renderText(Minecraft minecraft, @UnknownNullability GuiGraphicsExtractor context, double displayDouble, int displayDecimalPlaces, int textClass, boolean shadow, float scale, double xOffset, double yOffset){
@@ -39,23 +39,45 @@ public class CustomRender {
         int windowWidth = minecraft.getWindow().getGuiScaledWidth();
         int windowHeight = minecraft.getWindow().getGuiScaledHeight();
 
-        int boxW = (int)(minecraft.font.width(roundedDisplayDouble) * scale) + PADDING * 2;
-        int boxH = (int)(minecraft.font.lineHeight * scale) + PADDING * 2;
+        int boxW = boxWidth(minecraft.font, roundedDisplayDouble, scale);
+        int boxH = boxHeight(minecraft.font, scale);
 
-        int availX = Math.max(0, windowWidth - boxW - MARGIN * 2);
-        int availY = Math.max(0, windowHeight - boxH - MARGIN * 2);
+        float x = boxX(xOffset, windowWidth, boxW) + PADDING;
+        float y = boxY(yOffset, windowHeight, boxH) + PADDING;
 
-        float x = MARGIN + (float)(xOffset * availX) + PADDING;
-        float y = MARGIN + (float)(yOffset * availY) + PADDING;
+        drawScaledText(context, roundedDisplayDouble, x, y, scale, color, shadow);
+    }
 
+    // The geometry below is shared with the HUD layout editor (HUDConfig) so a number sits where it was dragged
+
+    public static int boxWidth(Font font, String text, float scale) {
+        return (int)(font.width(text) * scale) + PADDING * 2;
+    }
+
+    public static int boxHeight(Font font, float scale) {
+        return (int)(font.lineHeight * scale) + PADDING * 2;
+    }
+
+    /// Left edge of a box whose position is the fraction xOffset of the free width
+    public static float boxX(double xOffset, int screenWidth, int boxW) {
+        int availX = Math.max(0, screenWidth - boxW - MARGIN * 2);
+        return MARGIN + (float)(xOffset * availX);
+    }
+
+    public static float boxY(double yOffset, int screenHeight, int boxH) {
+        int availY = Math.max(0, screenHeight - boxH - MARGIN * 2);
+        return MARGIN + (float)(yOffset * availY);
+    }
+
+    public static void drawScaledText(GuiGraphicsExtractor context, String text, float x, float y, float scale, int color, boolean shadow) {
         context.pose().pushMatrix();
         context.pose().scale(scale, scale);
         float invScale = 1.0f / scale;
-        context.text(getFont(), roundedDisplayDouble, (int) (x * invScale), (int) (y * invScale), color, shadow);
+        context.text(getFont(), text, (int) (x * invScale), (int) (y * invScale), color, shadow);
         context.pose().popMatrix();
     }
 
-    private static String getRoundedDouble(double distance, int precision) {
+    public static String getRoundedDouble(double distance, int precision) {
         RoundingMode roundingMode = RoundingMode.DOWN;
         int cacheKey = (precision * 10) + roundingMode.ordinal();
 
