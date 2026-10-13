@@ -3,6 +3,7 @@ package net.blueskiez77.reach_display.config;
 import net.blueskiez77.reach_display.data.SharedData;
 import net.blueskiez77.reach_display.utils.CustomRender;
 import net.blueskiez77.reach_display.utils.ReachCalculation;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -188,7 +189,7 @@ public class HUDConfig extends Screen {
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
         if (panel.mouseClicked(event.x(), event.y(), event.button())) return true;
-        if (event.button() == 0) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             for (int n = 0; n < 3; n++) {           // reverse draw order: topmost wins
                 int i = (selectedIndex + 3 - n) % 3;
                 if (posTest(i, event.x(), event.y())) {
@@ -206,7 +207,7 @@ public class HUDConfig extends Screen {
 
     @Override
     public boolean mouseDragged(@NonNull MouseButtonEvent event, double dx, double dy) {
-        if (draggingIndex >= 0 && event.button() == 0) {
+        if (draggingIndex >= 0 && event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             int i = draggingIndex;
             tempX[i] = ratioX(i, event.x() - grabOffsetX);
             tempY[i] = ratioY(i, event.y() - grabOffsetY);
@@ -217,13 +218,13 @@ public class HUDConfig extends Screen {
             cursorInPanel = inPanel;
             return true;
         }
-        if (event.button() == 0 && panel.mouseDragged(event.x(), event.y())) return true;
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT && panel.mouseDragged(event.x())) return true;
         return super.mouseDragged(event, dx, dy);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (event.button() == 0) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             draggingIndex = -1;
             panel.mouseReleased();
         }
@@ -237,13 +238,13 @@ public class HUDConfig extends Screen {
     }
 
     @Override
-    public boolean keyPressed(KeyEvent event) {
+    public boolean keyPressed(@NonNull KeyEvent event) {
         if (panel.keyPressed(event)) return true;      // typing in the hex field (Esc there only unfocuses it)
         return super.keyPressed(event);
     }
 
     @Override
-    public boolean charTyped(CharacterEvent event) {
+    public boolean charTyped(@NonNull CharacterEvent event) {
         if (panel.charTyped(event)) return true;
         return super.charTyped(event);
     }

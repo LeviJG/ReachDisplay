@@ -35,6 +35,10 @@ public class LayoutPanel {
     private static final int TEXT = 0xFFE0E0E0, TEXT_DIM = 0xFFA0A0A0, TEXT_DISABLED = 0xFF707070;
     private static final int ACCENT = 0xFF5A8AC6;
 
+    // Mouse buttons must be compared with InputConstants (like YACL does): Minecraft 26.3 no longer uses the
+    // old GLFW numbers (0 = left, 1 = right), so hard-coded 0/1 never matched and no option could be clicked.
+    private static final int LEFT_CLICK = InputConstants.MOUSE_BUTTON_LEFT, RIGHT_CLICK = InputConstants.MOUSE_BUTTON_RIGHT;
+
     private final HUDConfig screen;
     private final List<List<Row>> rows = new ArrayList<>();
     private final int[] scroll = new int[3];
@@ -330,7 +334,7 @@ public class LayoutPanel {
         int left = left();
         int stripX = stripX(left);
         if (mx >= stripX && mx < stripX + STRIP_W) {
-            if (button != 0) return true;
+            if (button != LEFT_CLICK) return true;
             if (my < TOGGLE_H) {
                 expanded = !expanded;
                 return true;
@@ -347,13 +351,13 @@ public class LayoutPanel {
         }
 
         int handleX = handleX(left);
-        if (button == 0 && mx >= handleX && mx < handleX + HANDLE_W) {
+        if (button == LEFT_CLICK && mx >= handleX && mx < handleX + HANDLE_W) {
             resizing = true;
             return true;
         }
 
         int x = rowX(left), rw = rowW();
-        if (button == 0 && inside(mx, my, x, resetY(), rw, RESET_H)) {
+        if (button == LEFT_CLICK && inside(mx, my, x, resetY(), rw, RESET_H)) {
             confirmingReset = true;
             return true;
         }
@@ -377,7 +381,7 @@ public class LayoutPanel {
         return true;
     }
 
-    public boolean mouseDragged(double mx, double my) {
+    public boolean mouseDragged(double mx) {
         if (resizing) {
             int contentX = contentX(left());
             contentWidth = (int) (rightSide ? contentX + width() - mx : mx - contentX);
@@ -490,7 +494,7 @@ public class LayoutPanel {
 
         @Override
         boolean click(int x, int y, int w, double mx, double my, int button) {
-            if (button == 0) set.accept(!get.getAsBoolean());
+            if (button == LEFT_CLICK) set.accept(!get.getAsBoolean());
             return false;
         }
     }
@@ -531,7 +535,7 @@ public class LayoutPanel {
 
         @Override
         boolean click(int x, int y, int w, double mx, double my, int button) {
-            if (button != 0 || my < y + 11) return false;
+            if (button != LEFT_CLICK || my < y + 11) return false;
             drag(x, w, mx);
             return true;
         }
@@ -655,7 +659,7 @@ public class LayoutPanel {
 
         @Override
         boolean click(int x, int y, int w, double mx, double my, int button) {
-            if (button != 0) return false;
+            if (button != LEFT_CLICK) return false;
             setFocusedColor(this);
             caretPos = Math.max(1, caretPos);
             setSelectionLength();
@@ -679,48 +683,39 @@ public class LayoutPanel {
             return false;
         }
 
-        // Raw GLFW key codes, which is what KeyEvent.key() delivers. Checked alongside InputConstants because the
-        // InputConstants values compiled into the mod didn't match the keys the game actually sends.
-        private static final int GLFW_ESCAPE = 256, GLFW_ENTER = 257, GLFW_BACKSPACE = 259, GLFW_DELETE = 261,
-                GLFW_RIGHT = 262, GLFW_LEFT = 263, GLFW_HOME = 268, GLFW_END = 269, GLFW_KP_ENTER = 335;
-
-        private static boolean is(int key, int glfw, int constant) {
-            return key == glfw || key == constant;
-        }
-
         private boolean handleKey(KeyEvent event) {
             int key = event.key();
-            if (is(key, GLFW_ESCAPE, InputConstants.KEY_ESCAPE) || is(key, GLFW_ENTER, InputConstants.KEY_RETURN) || key == GLFW_KP_ENTER) {
+            if (key == InputConstants.KEY_ESCAPE || key == InputConstants.KEY_RETURN) {
                 setFocusedColor(null);
                 return true;
             }
-            if (is(key, GLFW_LEFT, InputConstants.KEY_LEFT)) {
+            if (key == InputConstants.KEY_LEFT) {
                 if (event.hasControlDown()) caretPos = 0;
                 else if (caretPos > 0) caretPos--;
                 return true;
             }
-            if (is(key, GLFW_RIGHT, InputConstants.KEY_RIGHT)) {
+            if (key == InputConstants.KEY_RIGHT) {
                 if (event.hasControlDown()) caretPos = inputField.length();
                 else if (caretPos < inputField.length()) caretPos++;
                 return true;
             }
-            if (is(key, GLFW_BACKSPACE, InputConstants.KEY_BACKSPACE)) {
+            if (key == InputConstants.KEY_BACKSPACE) {
                 // Digits are never removed, only reset to F
                 if (caretPos > 1) {
-                    setDigit(caretPos - 1, 'F');
+                    resetDigit(caretPos - 1);
                     caretPos--;
                 }
                 return true;
             }
-            if (is(key, GLFW_DELETE, InputConstants.KEY_DELETE)) {
-                if (caretPos >= 1 && caretPos < inputField.length()) setDigit(caretPos, 'F');
+            if (key == InputConstants.KEY_DELETE) {
+                if (caretPos >= 1 && caretPos < inputField.length()) resetDigit(caretPos);
                 return true;
             }
-            if (is(key, GLFW_END, InputConstants.KEY_END)) {
+            if (key == InputConstants.KEY_END) {
                 caretPos = inputField.length();
                 return true;
             }
-            if (is(key, GLFW_HOME, InputConstants.KEY_HOME)) {
+            if (key == InputConstants.KEY_HOME) {
                 caretPos = 0;
                 return true;
             }
@@ -753,9 +748,10 @@ public class LayoutPanel {
             setSelectionLength();
         }
 
-        private void setDigit(int index, char digit) {
+        /// Backspace and Delete never remove a digit, they reset it to F
+        private void resetDigit(int index) {
             StringBuilder builder = new StringBuilder(inputField);
-            builder.setCharAt(index, digit);
+            builder.setCharAt(index, 'F');
             inputField = builder.toString();
             apply();
         }
@@ -798,7 +794,7 @@ public class LayoutPanel {
 
         @Override
         boolean click(int x, int y, int w, double mx, double my, int button) {
-            int amount = button == 1 ? 10 : 1;
+            int amount = button == RIGHT_CLICK ? 10 : 1;
             Font font = font();
             int valueW = Math.max(font.width("0000"), font.width(String.valueOf(get.getAsInt()))) + 4;
             int plusX = x + w - BUTTON, minusX = plusX - valueW - BUTTON;
