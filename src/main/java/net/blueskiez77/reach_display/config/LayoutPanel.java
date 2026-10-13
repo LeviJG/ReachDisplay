@@ -112,7 +112,7 @@ public class LayoutPanel {
     }
 
     private int width() {
-        return Math.clamp(contentWidth, MIN_WIDTH, Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, screen.width / 2)));
+        return Math.clamp(contentWidth, MIN_WIDTH, Math.clamp(screen.width / 2, MIN_WIDTH, MAX_WIDTH));
     }
 
     private int totalWidth() {
@@ -276,7 +276,7 @@ public class LayoutPanel {
 
         String line1 = "Reset the position of";
         String line2 = TAB_NAMES[screen.selected()] + "?";
-        int pw = Math.min(screen.width - 20, Math.max(160, Math.max(font.width(line1), font.width(line2)) + 20));
+        int pw = Math.clamp(Math.max(font.width(line1), font.width(line2)) + 20, 160, screen.width - 20);
         int ph = 62, px = (screen.width - pw) / 2, py = (screen.height - ph) / 2;
         g.fill(px - 1, py - 1, px + pw + 1, py + ph + 1, 0xFF505050);
         g.fill(px, py, px + pw, py + ph, 0xFF151515);
@@ -289,7 +289,7 @@ public class LayoutPanel {
     }
 
     private boolean popupClick(double mx, double my) {
-        int pw = Math.min(screen.width - 20, Math.max(160, Math.max(font().width("Reset the position of"), font().width(TAB_NAMES[screen.selected()] + "?")) + 20));
+        int pw = Math.clamp(Math.max(font().width("Reset the position of"), font().width(TAB_NAMES[screen.selected()] + "?")) + 20, 160, screen.width - 20);
         int ph = 62, px = (screen.width - pw) / 2, py = (screen.height - ph) / 2;
         int bw = (pw - 30) / 2, by = py + ph - 24;
         if (inside(mx, my, px + 10, by, bw, 16)) {
@@ -402,8 +402,7 @@ public class LayoutPanel {
         setFocusedColor(null);
     }
 
-    /// Minecraft 26.3 only delivers typed characters while a text field has told it it's focused (YACL does the
-    /// same). Looked up by reflection, so versions without the method simply skip it instead of crashing.
+    /// Minecraft 26.3 only delivers typed characters while a text field has told if it's focused (YACL does the same). Looked up by reflection, so versions without the method simply skip it instead of crashing.
     private void setTextInputFocus(boolean focused) {
         try {
             for (Method method : Minecraft.class.getMethods()) {
@@ -648,7 +647,7 @@ public class LayoutPanel {
             g.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
         }
 
-        /// White, or light grey if the color itself is almost white, so the outline stays visible
+        /// White, or light gray if the color itself is almost white, so the outline stays visible
         private static int highlightedOutlineColor(int rgb) {
             float[] hsb = java.awt.Color.RGBtoHSB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, null);
             return hsb[1] < 0.1f && hsb[2] > 0.9f ? 0xFFC6C6C6 : 0xFFFFFFFF;
