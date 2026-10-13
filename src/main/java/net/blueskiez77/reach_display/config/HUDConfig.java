@@ -11,40 +11,35 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
 
+import java.util.function.Supplier;
+
 
 public class HUDConfig extends Screen {
 
-    public static class HudElement {
-        public boolean enabled = true;
-        public double posX = 0.5;
-        public double posY = 0.0;
+    private static final int SELECTION_COLOR = 0xFFFFD24A;
+    private static final int DISABLED_TEXT_COLOR = 0xFF6A6A6A;
 
-        //public HudElement() {}                                  // keep for Gson / default use
-        public HudElement(double posX, double posY, boolean enabled) {
-            this.posX = posX;
-            this.posY = posY;
-            this.enabled = enabled;
-        }
-    }
+    // Options edited in the side menu change DisplayConfig directly, so the screen we return to is rebuilt rather than reused: a reused YACL screen would still hold the old values and write them back on save.
+    private final Supplier<Screen> returnTo;
+    private final LayoutPanel panel;
 
-    private final Screen parent;
-
-    private final HudElement[] elements;
     private final double[] SAMPLE = { 3.1415926535, 2.7182818284, 1.6180339887 };
 
     private final double[] tempX = new double[3];
     private final double[] tempY = new double[3];
 
+    private int selectedIndex = 0;
     private int draggingIndex = -1;
-    private double grabOffsetX, grabOffsetY;   // where inside the box we grabbed
+    private double grabOffsetX, grabOffsetY;
+    private boolean cursorInPanel;
 
-    private HudElement[] buildElements() {
-        DisplayConfig displayConfig = DisplayConfig.INSTANCE;
-        HudElement[] arr = new HudElement[3];
-        arr[0] = new HudElement(displayConfig.distanceXOffset, displayConfig.distanceYOffset, displayConfig.distanceEnabled);
-        arr[1] = new HudElement(displayConfig.hitXOffset, displayConfig.hitYOffset,  displayConfig.hitDistanceEnabled);
-        arr[2] = new HudElement(displayConfig.averageHitXOffset, displayConfig.averageHitYOffset, displayConfig.averageHitEnabled);
-        return arr;
+    static boolean isEnabled(int i) {
+        DisplayConfig c = DisplayConfig.INSTANCE;
+        return switch (i) {
+            case 0 -> c.distanceEnabled;
+            case 1 -> c.hitDistanceEnabled;
+            default -> c.averageHitEnabled;
+        };
     }
 
     private String label(int i) {
@@ -92,13 +87,42 @@ public class HUDConfig extends Screen {
         };
     }
 
-    public HUDConfig(Screen parent) {
+    private boolean shadow(int i) {
+        DisplayConfig c = DisplayConfig.INSTANCE;
+        return switch (i) {
+            case 0 -> c.distanceTextShadow;
+            case 1 -> c.hitDistanceTextShadow;
+            default -> c.averageHitTextShadow;
+        };
+    }
+
+    public HUDConfig(Supplier<Screen> returnTo) {
         super(Component.literal("HUD Layout"));
-        this.parent = parent;
-        this.elements = buildElements();
-        for (int i = 0; i < 3; i++) {
-            tempX[i] = elements[i].posX;
-            tempY[i] = elements[i].posY;
+        this.returnTo = returnTo;
+        this.panel = new LayoutPanel(this);
+
+        DisplayConfig c = DisplayConfig.INSTANCE;
+        tempX[0] = c.distanceXOffset;    tempY[0] = c.distanceYOffset;
+        tempX[1] = c.hitXOffset;         tempY[1] = c.hitYOffset;
+        tempX[2] = c.averageHitXOffset;  tempY[2] = c.averageHitYOffset;
+    }
+
+    /* ----- selection (shared with the side menu) ----- */
+
+    int selected() {
+        return selectedIndex;
+    }
+
+    void select(int i) {
+        selectedIndex = i;
+    }
+
+    void resetPosition(int i) {
+        DisplayConfig defaults = new DisplayConfig();
+        switch (i) {
+            case 0 -> { tempX[0] = defaults.distanceXOffset;   tempY[0] = defaults.distanceYOffset; }
+            case 1 -> { tempX[1] = defaults.hitXOffset;        tempY[1] = defaults.hitYOffset; }
+            default -> { tempX[2] = defaults.averageHitXOffset; tempY[2] = defaults.averageHitYOffset; }
         }
     }
 
@@ -125,14 +149,31 @@ public class HUDConfig extends Screen {
         g.fill(0, 0, this.width, this.height, 0x30101010);
         super.extractRenderState(g, mouseX, mouseY, partial);
 
-        for (int i = 0; i < 3; i++) {
-            if (!elements[i].enabled) continue;
-            int x = pixelX(i), y = pixelY(i);
-            boolean isHovering = posTest(i, mouseX, mouseY);
-            g.fill(x, y, x + boxWidth(i), y + boxHeight(i),
-                    isHovering ? 0xA0303030 : 0x60000000);
-            CustomRender.drawScaledText(g, label(i), boxX(i) + CustomRender.PADDING, boxY(i) + CustomRender.PADDING, scale(i), 0xFFFFFFFF, true);
+        boolean popup = panel.isConfirmingReset();
+        // The selected box is drawn last so it stays on top of any box it overlaps
+        for (int n = 0; n < 3; n++) {
+            int i = (selectedIndex + 1 + n) % 3;
+            int x = pixelX(i), y = pixelY(i), w = boxWidth(i), h = boxHeight(i);
+            boolean enabled = isEnabled(i);
+            boolean isHovering = !popup && draggingIndex < 0 && !panel.contains(mouseX, mouseY) && posTest(i, mouseX, mouseY);
+
+            int background = i == draggingIndex || isHovering ? 0xA0303030 : enabled ? 0x60000000 : 0x30000000;
+            g.fill(x, y, x + w, y + h, background);
+            if (i == selectedIndex) outline(g, x - 1, y - 1, w + 2, h + 2, SELECTION_COLOR);
+
+            int color = enabled ? CustomRender.getARGBColor(i) : DISABLED_TEXT_COLOR;
+            CustomRender.drawScaledText(g, label(i), boxX(i) + CustomRender.PADDING, boxY(i) + CustomRender.PADDING, scale(i), color, enabled && shadow(i));
         }
+
+        panel.render(g, mouseX, mouseY);
+        panel.renderPopup(g, mouseX, mouseY);
+    }
+
+    private static void outline(GuiGraphicsExtractor g, int x, int y, int w, int h, int color) {
+        g.fill(x, y, x + w, y + 1, color);
+        g.fill(x, y + h - 1, x + w, y + h, color);
+        g.fill(x, y + 1, x + 1, y + h - 1, color);
+        g.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
     }
 
     private boolean posTest(int i, double mx, double my) {
@@ -143,10 +184,14 @@ public class HUDConfig extends Screen {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+        if (panel.mouseClicked(event.x(), event.y(), event.button())) return true;
         if (event.button() == 0) {
-            for (int i = 2; i >= 0; i--) {           // reverse draw order: topmost wins
-                if (elements[i].enabled && posTest(i, event.x(), event.y())) {
+            for (int n = 0; n < 3; n++) {           // reverse draw order: topmost wins
+                int i = (selectedIndex + 3 - n) % 3;
+                if (posTest(i, event.x(), event.y())) {
+                    selectedIndex = i;
                     draggingIndex = i;
+                    cursorInPanel = false;
                     grabOffsetX = event.x() - pixelX(i);
                     grabOffsetY = event.y() - pixelY(i);
                     return true;
@@ -162,21 +207,41 @@ public class HUDConfig extends Screen {
             int i = draggingIndex;
             tempX[i] = ratioX(i, event.x() - grabOffsetX);
             tempY[i] = ratioY(i, event.y() - grabOffsetY);
+
+            // Dragging into the menu sends it to the other side of the screen, where it stays until it's crossed again
+            boolean inPanel = panel.contains(event.x(), event.y());
+            if (inPanel && !cursorInPanel) panel.flip();
+            cursorInPanel = inPanel;
             return true;
         }
+        if (event.button() == 0 && panel.mouseDragged(event.x(), event.y())) return true;
         return super.mouseDragged(event, dx, dy);
     }
 
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (event.button() == 0) draggingIndex = -1;
+        if (event.button() == 0) {
+            draggingIndex = -1;
+            panel.mouseReleased();
+        }
         return super.mouseReleased(event);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (panel.mouseScrolled(mouseX, mouseY, scrollY)) return true;
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     /* ----- close: commit + save ----- */
 
     @Override
     public void onClose() {
+        if (panel.isConfirmingReset()) {     // Esc closes the confirmation popup first
+            panel.cancelReset();
+            return;
+        }
+
         DisplayConfig c = DisplayConfig.INSTANCE;
 
         c.distanceXOffset   = tempX[0];  c.distanceYOffset   = tempY[0];
@@ -184,6 +249,6 @@ public class HUDConfig extends Screen {
         c.averageHitXOffset = tempX[2];  c.averageHitYOffset = tempY[2];
 
         ConfigManager.save();
-        Minecraft.getInstance().setScreenAndShow(parent);
+        Minecraft.getInstance().setScreenAndShow(returnTo.get());
     }
 }

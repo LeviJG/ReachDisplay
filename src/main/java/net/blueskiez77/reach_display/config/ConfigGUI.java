@@ -42,7 +42,7 @@ public class ConfigGUI {
                                 .build())
                         .option(ButtonOption.createBuilder()
                                 .name(Component.literal("Edit HUD Layout"))
-                                .action((screen, opt) -> Minecraft.getInstance().setScreenAndShow(new HUDConfig(screen)))
+                                .action((screen, opt) -> Minecraft.getInstance().setScreenAndShow(new HUDConfig(() -> create(parent))))
                                 .build())
                         .option(ButtonOption.createBuilder()
                                 .name(Component.literal("Reset HUD Positions"))

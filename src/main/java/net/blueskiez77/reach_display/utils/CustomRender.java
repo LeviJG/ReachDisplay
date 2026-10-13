@@ -29,12 +29,7 @@ public class CustomRender {
     public static void renderText(Minecraft minecraft, @UnknownNullability GuiGraphicsExtractor context, double displayDouble, int displayDecimalPlaces, int textClass, boolean shadow, float scale, double xOffset, double yOffset){
         String roundedDisplayDouble = getRoundedDouble(displayDouble, displayDecimalPlaces);
 
-        int color = switch (textClass) {
-            case 0 -> getDistanceARGBColor();
-            case 1 -> getHitDistanceARGBColor();
-            case 2 -> getAverageHitDistanceARGBColor();
-            default -> 0xFFFFFF;
-        };
+        int color = getARGBColor(textClass);
 
         int windowWidth = minecraft.getWindow().getGuiScaledWidth();
         int windowHeight = minecraft.getWindow().getGuiScaledHeight();
@@ -75,6 +70,16 @@ public class CustomRender {
         float invScale = 1.0f / scale;
         context.text(getFont(), text, (int) (x * invScale), (int) (y * invScale), color, shadow);
         context.pose().popMatrix();
+    }
+
+    /// textClass values mapping: 0 = distance; 1 = hitDistance; 2 = averageHitDistance
+    public static int getARGBColor(int textClass) {
+        return switch (textClass) {
+            case 0 -> getDistanceARGBColor();
+            case 1 -> getHitDistanceARGBColor();
+            case 2 -> getAverageHitDistanceARGBColor();
+            default -> 0xFFFFFF;
+        };
     }
 
     public static String getRoundedDouble(double distance, int precision) {
