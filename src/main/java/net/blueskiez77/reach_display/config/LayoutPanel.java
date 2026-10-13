@@ -1,9 +1,13 @@
 package net.blueskiez77.reach_display.config;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -45,6 +49,7 @@ public class LayoutPanel {
     private int activeSliderX, activeSliderW;
     private boolean resizing;
     private boolean confirmingReset;
+    private ColorRow focusedColor;                 // hex field being typed in, if any
 
     public LayoutPanel(HUDConfig screen) {
         this.screen = screen;
@@ -53,7 +58,7 @@ public class LayoutPanel {
         rows.add(List.of(
                 new ToggleRow("Enabled", () -> c.distanceEnabled, v -> c.distanceEnabled = v),
                 new SliderRow("Scale", 0.1, 4.0, 0.1, v -> String.format("%.1f", v), () -> c.distanceTextScale, v -> c.distanceTextScale = (float) v),
-                new ColorRow("Text Color", () -> c.distanceTextColor),
+                new ColorRow("Text Color", () -> c.distanceTextColor, v -> c.distanceTextColor = v),
                 new ChannelRow("Red", 16, () -> c.distanceTextColor, v -> c.distanceTextColor = v),
                 new ChannelRow("Green", 8, () -> c.distanceTextColor, v -> c.distanceTextColor = v),
                 new ChannelRow("Blue", 0, () -> c.distanceTextColor, v -> c.distanceTextColor = v),
@@ -64,7 +69,7 @@ public class LayoutPanel {
         rows.add(List.of(
                 new ToggleRow("Enabled", () -> c.hitDistanceEnabled, v -> c.hitDistanceEnabled = v),
                 new SliderRow("Scale", 0.1, 4.0, 0.1, v -> String.format("%.1f", v), () -> c.hitDistanceTextScale, v -> c.hitDistanceTextScale = (float) v),
-                new ColorRow("Text Color", () -> c.hitDistanceTextColor),
+                new ColorRow("Text Color", () -> c.hitDistanceTextColor, v -> c.hitDistanceTextColor = v),
                 new ChannelRow("Red", 16, () -> c.hitDistanceTextColor, v -> c.hitDistanceTextColor = v),
                 new ChannelRow("Green", 8, () -> c.hitDistanceTextColor, v -> c.hitDistanceTextColor = v),
                 new ChannelRow("Blue", 0, () -> c.hitDistanceTextColor, v -> c.hitDistanceTextColor = v),
@@ -76,7 +81,7 @@ public class LayoutPanel {
                 new ToggleRow("Enabled", () -> c.averageHitEnabled, v -> c.averageHitEnabled = v),
                 new StepperRow("Hits Counted", 2, 1024, () -> c.numberOfHitsCounted, v -> c.numberOfHitsCounted = v),
                 new SliderRow("Scale", 0.1, 4.0, 0.1, v -> String.format("%.1f", v), () -> c.averageHitTextScale, v -> c.averageHitTextScale = (float) v),
-                new ColorRow("Text Color", () -> c.averageHitTextColor),
+                new ColorRow("Text Color", () -> c.averageHitTextColor, v -> c.averageHitTextColor = v),
                 new ChannelRow("Red", 16, () -> c.averageHitTextColor, v -> c.averageHitTextColor = v),
                 new ChannelRow("Green", 8, () -> c.averageHitTextColor, v -> c.averageHitTextColor = v),
                 new ChannelRow("Blue", 0, () -> c.averageHitTextColor, v -> c.averageHitTextColor = v),
@@ -318,6 +323,7 @@ public class LayoutPanel {
 
     /// Returns true if the click landed on the menu (or a popup is open), so the boxes underneath must ignore it
     public boolean mouseClicked(double mx, double my, int button) {
+        setFocusedColor(null);                     // any click unfocuses the hex field; clicking it again refocuses it
         if (confirmingReset) return popupClick(mx, my);
         if (!contains(mx, my)) return false;
 
@@ -383,6 +389,42 @@ public class LayoutPanel {
             return true;
         }
         return false;
+    }
+
+    private void setFocusedColor(ColorRow row) {
+        if (row == focusedColor) return;
+        focusedColor = row;
+        setTextInputFocus(row != null);
+    }
+
+    /// Unfocuses the hex field, e.g. when the screen closes
+    public void clearFocus() {
+        setFocusedColor(null);
+    }
+
+    /// Minecraft 26.3 only delivers typed characters while a text field has told it it's focused (YACL does the
+    /// same). Looked up by reflection, so versions without the method simply skip it instead of crashing.
+    private void setTextInputFocus(boolean focused) {
+        try {
+            for (Method method : Minecraft.class.getMethods()) {
+                Class<?>[] params = method.getParameterTypes();
+                if (method.getName().equals("onTextInputFocusChange") && params.length == 2
+                        && params[0].isInstance(screen) && params[1] == boolean.class) {
+                    method.invoke(Minecraft.getInstance(), screen, focused);
+                    return;
+                }
+            }
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+        }
+    }
+
+    /// Keys go to the focused hex field. Returns true if it used the key, so the screen must ignore it.
+    public boolean keyPressed(KeyEvent event) {
+        return focusedColor != null && focusedColor.keyPressed(event);
+    }
+
+    public boolean charTyped(CharacterEvent event) {
+        return focusedColor != null && focusedColor.charTyped(event);
     }
 
     public void mouseReleased() {
@@ -511,27 +553,218 @@ public class LayoutPanel {
         }
     }
 
-    /// Label and preview swatch above the Red/Green/Blue sliders
-    private static class ColorRow extends Row {
-        private final IntSupplier get;
+    /// Hex color field, copied from YACL's ColorController: the value shows as #RRGGBB with red, green and
+    /// blue digits, and typing overwrites one digit at a time. Illegal input is silently ignored.
+    private class ColorRow extends Row {
+        private static final int RED = 0xFFFF5555, GREEN = 0xFF55FF55, BLUE = 0xFF5555FF;   // ChatFormatting.RED/GREEN/BLUE
+        private static final int Y_PADDING = 2;
+        private static final String HEX_CHARS = "0123456789abcdef";
 
-        ColorRow(String name, IntSupplier get) {
+        private final IntSupplier get;
+        private final IntConsumer set;
+        private String inputField = "#000000";
+        private int caretPos, previousCaretPos, selectionLength;
+        private long caretMovedAt;
+
+        ColorRow(String name, IntSupplier get, IntConsumer set) {
             super(name);
             this.get = get;
+            this.set = set;
         }
 
-        @Override int height() { return 14; }
+        @Override int height() { return 20; }
+
+        private boolean focused() {
+            return focusedColor == this;
+        }
+
+        private String hex() {
+            return String.format("#%06X", get.getAsInt() & 0xFFFFFF);
+        }
 
         @Override
         void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
+            if (!focused()) inputField = hex();          // follow the sliders while not typing
+
+            int xLimit = x + w, centerY = y + height() / 2;
+            boolean hovered = inside(mouseX, mouseY, x, y, w, height()) || focused();
+            int textY = (int) (y + height() / 2f - font.lineHeight / 2f);
+            g.text(font, name, x, textY, nameColor(enabled), true);
+
+            String text = hex();
+            int textX = xLimit - font.width(text);
+            int fieldW = Math.max(6, font.width(text));
+            int fieldX = xLimit - fieldW, fieldY = centerY - font.lineHeight / 2, fieldYLimit = fieldY + font.lineHeight;
+
+            // Preview square: small at the right edge, or bigger and left of the text while hovered
+            int previewSize = (height() - Y_PADDING * 2) / 2;
+            int previewX = xLimit - previewSize, previewY = centerY - previewSize / 2;
+
+            if (hovered) {
+                previewX -= fieldW + 8;
+                previewY -= 2;
+                previewSize += 4;
+
+                drawColoredHex(g, font, text, textX, textY);
+                g.fill(fieldX, fieldYLimit, xLimit, fieldYLimit + 1, 0xFFFFFFFF);                // underline
+                g.fill(fieldX + 1, fieldYLimit + 1, xLimit + 1, fieldYLimit + 2, 0xFF404040);   // and its shadow
+
+                if (focused()) {
+                    caretPos = Math.min(caretPos, text.length());
+                    int caretX = textX + font.width(text.substring(0, caretPos));
+                    if (selectionLength != 0) {
+                        int selectionX = textX + font.width(text.substring(0, caretPos + selectionLength));
+                        g.fill(caretX, fieldY - 2, selectionX, fieldYLimit - 1, 0x803030FF);
+                    }
+                    long now = System.currentTimeMillis();
+                    if (caretPos != previousCaretPos) {
+                        previousCaretPos = caretPos;
+                        caretMovedAt = now;
+                    }
+                    if ((now - caretMovedAt) % 1000 <= 550) g.fill(caretX, fieldY - 2, caretX + 1, fieldYLimit - 1, 0xFFFFFFFF);
+                }
+            }
+
             int rgb = get.getAsInt() & 0xFFFFFF;
-            g.text(font, name, x, y + 3, nameColor(enabled), false);
-            String hex = String.format("#%06X", rgb);
-            int swatchX = x + w - 14;
-            g.text(font, hex, swatchX - 4 - font.width(hex), y + 3, TEXT_DIM, false);
-            g.fill(swatchX - 1, y + 1, swatchX + 15, y + 13, 0xFF000000);
-            g.fill(swatchX, y + 2, swatchX + 14, y + 12, 0xFF000000 | rgb);
+            g.fill(previewX, previewY, previewX + previewSize, previewY + previewSize, 0xFF000000 | rgb);
+            boolean overPreview = inside(mouseX, mouseY, previewX, previewY, previewSize, previewSize);
+            outline(g, previewX, previewY, previewSize, previewSize, overPreview ? highlightedOutlineColor(rgb) : 0xFF000000);
+        }
+
+        private static void drawColoredHex(GuiGraphicsExtractor g, Font font, String text, int x, int y) {
+            int[] colors = { 0xFFFFFFFF, RED, GREEN, BLUE };
+            String[] parts = { text.substring(0, 1), text.substring(1, 3), text.substring(3, 5), text.substring(5, 7) };
+            for (int i = 0; i < parts.length; i++) {
+                g.text(font, parts[i], x, y, colors[i], true);
+                x += font.width(parts[i]);
+            }
+        }
+
+        private static void outline(GuiGraphicsExtractor g, int x, int y, int w, int h, int color) {
+            g.fill(x, y, x + w, y + 1, color);
+            g.fill(x, y + h - 1, x + w, y + h, color);
+            g.fill(x, y + 1, x + 1, y + h - 1, color);
+            g.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
+        }
+
+        /// White, or light grey if the color itself is almost white, so the outline stays visible
+        private static int highlightedOutlineColor(int rgb) {
+            float[] hsb = java.awt.Color.RGBtoHSB((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF, null);
+            return hsb[1] < 0.1f && hsb[2] > 0.9f ? 0xFFC6C6C6 : 0xFFFFFFFF;
+        }
+
+        @Override
+        boolean click(int x, int y, int w, double mx, double my, int button) {
+            if (button != 0) return false;
+            setFocusedColor(this);
+            caretPos = Math.max(1, caretPos);
+            setSelectionLength();
+            return false;
+        }
+
+        /// The digit after the caret is highlighted, since typing replaces it
+        private void setSelectionLength() {
+            selectionLength = caretPos < inputField.length() && caretPos > 0 ? 1 : 0;
+        }
+
+        boolean keyPressed(KeyEvent event) {
+            int prevSelectionLength = selectionLength;
+            selectionLength = 0;
+            if (handleKey(event)) {
+                caretPos = Math.max(1, caretPos);       // never in front of the #
+                setSelectionLength();
+                return true;
+            }
+            selectionLength = prevSelectionLength;
+            return false;
+        }
+
+        // Raw GLFW key codes, which is what KeyEvent.key() delivers. Checked alongside InputConstants because the
+        // InputConstants values compiled into the mod didn't match the keys the game actually sends.
+        private static final int GLFW_ESCAPE = 256, GLFW_ENTER = 257, GLFW_BACKSPACE = 259, GLFW_DELETE = 261,
+                GLFW_RIGHT = 262, GLFW_LEFT = 263, GLFW_HOME = 268, GLFW_END = 269, GLFW_KP_ENTER = 335;
+
+        private static boolean is(int key, int glfw, int constant) {
+            return key == glfw || key == constant;
+        }
+
+        private boolean handleKey(KeyEvent event) {
+            int key = event.key();
+            if (is(key, GLFW_ESCAPE, InputConstants.KEY_ESCAPE) || is(key, GLFW_ENTER, InputConstants.KEY_RETURN) || key == GLFW_KP_ENTER) {
+                setFocusedColor(null);
+                return true;
+            }
+            if (is(key, GLFW_LEFT, InputConstants.KEY_LEFT)) {
+                if (event.hasControlDown()) caretPos = 0;
+                else if (caretPos > 0) caretPos--;
+                return true;
+            }
+            if (is(key, GLFW_RIGHT, InputConstants.KEY_RIGHT)) {
+                if (event.hasControlDown()) caretPos = inputField.length();
+                else if (caretPos < inputField.length()) caretPos++;
+                return true;
+            }
+            if (is(key, GLFW_BACKSPACE, InputConstants.KEY_BACKSPACE)) {
+                // Digits are never removed, only reset to F
+                if (caretPos > 1) {
+                    setDigit(caretPos - 1, 'F');
+                    caretPos--;
+                }
+                return true;
+            }
+            if (is(key, GLFW_DELETE, InputConstants.KEY_DELETE)) {
+                if (caretPos >= 1 && caretPos < inputField.length()) setDigit(caretPos, 'F');
+                return true;
+            }
+            if (is(key, GLFW_END, InputConstants.KEY_END)) {
+                caretPos = inputField.length();
+                return true;
+            }
+            if (is(key, GLFW_HOME, InputConstants.KEY_HOME)) {
+                caretPos = 0;
+                return true;
+            }
+            if (event.isPaste()) {
+                write(Minecraft.getInstance().keyboardHandler.getClipboard());
+                return true;
+            }
+            return false;
+        }
+
+        boolean charTyped(CharacterEvent event) {
+            write(event.codepointAsString());
+            return true;
+        }
+
+        /// Overwrites digits from the caret onwards. Anything that isn't hex is ignored, without a warning.
+        private void write(String string) {
+            string = string.strip();
+            if (string.startsWith("#")) string = string.substring(1);
+            else if (string.startsWith("0x") || string.startsWith("0X")) string = string.substring(2);
+            for (char chr : string.toCharArray()) {
+                if (HEX_CHARS.indexOf(Character.toLowerCase(chr)) < 0) return;
+            }
+            if (caretPos == 0) return;
+
+            String trimmed = string.substring(0, Math.min(inputField.length() - caretPos, string.length()));
+            inputField = new StringBuilder(inputField).replace(caretPos, caretPos + trimmed.length(), trimmed).toString();
+            apply();
+            caretPos += trimmed.length();
+            setSelectionLength();
+        }
+
+        private void setDigit(int index, char digit) {
+            StringBuilder builder = new StringBuilder(inputField);
+            builder.setCharAt(index, digit);
+            inputField = builder.toString();
+            apply();
+        }
+
+        /// Applies the field straight away, like YACL's instant apply
+        private void apply() {
+            set.accept(Integer.parseInt(inputField.substring(1, 7), 16));
+            inputField = hex();
         }
     }
 

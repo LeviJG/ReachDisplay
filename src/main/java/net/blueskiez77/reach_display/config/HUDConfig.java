@@ -6,10 +6,13 @@ import net.blueskiez77.reach_display.utils.ReachCalculation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.CharacterEvent;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.EntityHitResult;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.Supplier;
 
@@ -202,7 +205,7 @@ public class HUDConfig extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+    public boolean mouseDragged(@NonNull MouseButtonEvent event, double dx, double dy) {
         if (draggingIndex >= 0 && event.button() == 0) {
             int i = draggingIndex;
             tempX[i] = ratioX(i, event.x() - grabOffsetX);
@@ -233,6 +236,18 @@ public class HUDConfig extends Screen {
         return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
+    @Override
+    public boolean keyPressed(KeyEvent event) {
+        if (panel.keyPressed(event)) return true;      // typing in the hex field (Esc there only unfocuses it)
+        return super.keyPressed(event);
+    }
+
+    @Override
+    public boolean charTyped(CharacterEvent event) {
+        if (panel.charTyped(event)) return true;
+        return super.charTyped(event);
+    }
+
     /* ----- close: commit + save ----- */
 
     @Override
@@ -241,6 +256,7 @@ public class HUDConfig extends Screen {
             panel.cancelReset();
             return;
         }
+        panel.clearFocus();
 
         DisplayConfig c = DisplayConfig.INSTANCE;
 
