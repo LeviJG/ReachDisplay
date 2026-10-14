@@ -6,6 +6,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -26,14 +28,30 @@ public class LayoutPanel {
     private static final String[] TAB_NAMES = { "Distance", "Hit Distance", "Average Hit Distance" };
     private static final String[] TAB_SHORT_NAMES = { "Dist", "Hit", "Avg" };
 
-    private static final int STRIP_W = 14, TOGGLE_H = 14, TAB_PAD = 10;
+    private static final int STRIP_W = 20, TOGGLE_H = 20, TAB_PAD = 10;
     private static final int HEADER_H = 18, RESET_H = 18, ROW_INSET = 6, HANDLE_W = 3;
     private static final int MIN_WIDTH = 110, MAX_WIDTH = 260;
     private static final long SLIDE_MS = 180;
 
-    private static final int BG = 0xD0101010, TAB_BG = 0xD0181818, TAB_SELECTED_BG = 0xF0303030;
+    private static final int BG = 0xD0101010, TAB_BG = 0xD0181818;
     private static final int TEXT = 0xFFE0E0E0, TEXT_DIM = 0xFFA0A0A0, TEXT_DISABLED = 0xFF707070;
-    private static final int ACCENT = 0xFF5A8AC6;
+    private static final int RED_TEXT = 0xFFFF5555, GREEN_TEXT = 0xFF55FF55;   // ChatFormatting.RED / GREEN
+
+    // Vanilla GUI sprites, drawn the same way YACL draws its option rows
+    private static final Identifier BUTTON = sprite("widget/button");
+    private static final Identifier BUTTON_HIGHLIGHTED = sprite("widget/button_highlighted");
+    private static final Identifier TAB = sprite("widget/tab");
+    private static final Identifier TAB_HIGHLIGHTED = sprite("widget/tab_highlighted");
+    private static final Identifier TAB_SELECTED = sprite("widget/tab_selected");
+    private static final Identifier TAB_SELECTED_HIGHLIGHTED = sprite("widget/tab_selected_highlighted");
+    private static final Identifier SCROLLER = sprite("widget/scroller");
+    private static final Identifier SCROLLER_BACKGROUND = sprite("widget/scroller_background");
+    private static final Identifier POPUP_BACKGROUND = sprite("popup/background");
+    private static final int SCROLLER_W = 6;
+
+    private static Identifier sprite(String path) {
+        return Identifier.fromNamespaceAndPath("minecraft", path);
+    }
 
     // Mouse buttons must be compared with InputConstants (like YACL does): Minecraft 26.3 no longer uses the
     // old GLFW numbers (0 = left, 1 = right), so hard-coded 0/1 never matched and no option could be clicked.
@@ -200,21 +218,21 @@ public class LayoutPanel {
         g.fill(stripX, 0, stripX + STRIP_W, screen.height, TAB_BG);
         boolean hoverToggle = mouseX >= stripX && mouseX < stripX + STRIP_W && mouseY >= 0 && mouseY < TOGGLE_H && !confirmingReset;
         String arrow = expanded == rightSide ? ">" : "<";      // points the way the menu will move
-        g.text(font, arrow, stripX + (STRIP_W - font.width(arrow)) / 2 + 1, (TOGGLE_H - font.lineHeight) / 2 + 1, hoverToggle ? 0xFFFFFFFF : TEXT_DIM, false);
+        drawButton(g, stripX, 0, STRIP_W, TOGGLE_H, arrow, hoverToggle, 0xFFFFFFFF);
 
         String[] labels = tabLabels();
         for (int i = 0; i < 3; i++) {
             int top = tabTop(i), h = tabHeight(i);
             boolean isSelected = i == selected;
             boolean hover = !confirmingReset && mouseX >= stripX && mouseX < stripX + STRIP_W && mouseY >= top && mouseY < top + h;
-            if (isSelected || hover) g.fill(stripX, top, stripX + STRIP_W, top + h, isSelected ? TAB_SELECTED_BG : 0xF0242424);
-            g.fill(stripX, top + h - 1, stripX + STRIP_W, top + h, 0xFF000000);
-
             int color = !HUDConfig.isEnabled(i) ? TEXT_DISABLED : isSelected ? 0xFFFFFFFF : TEXT_DIM;
             g.pose().pushMatrix();
             g.pose().translate(stripX + STRIP_W / 2f, top + h / 2f);
-            g.pose().rotate((float) (rightSide ? Math.PI / 2 : -Math.PI / 2));   // text runs along the screen edge
-            g.text(font, labels[i], -font.width(labels[i]) / 2, -font.lineHeight / 2 + 1, color, false);
+            // Rotated so the text runs along the screen edge, and the tab's open side faces the options
+            g.pose().rotate((float) (rightSide ? Math.PI / 2 : -Math.PI / 2));
+            Identifier tab = isSelected ? (hover ? TAB_SELECTED_HIGHLIGHTED : TAB_SELECTED) : (hover ? TAB_HIGHLIGHTED : TAB);
+            g.blitSprite(RenderPipelines.GUI_TEXTURED, tab, -h / 2, -STRIP_W / 2, h, STRIP_W);
+            g.text(font, labels[i], -font.width(labels[i]) / 2, -font.lineHeight / 2 + 1, color, true);
             g.pose().popMatrix();
         }
 
@@ -251,15 +269,15 @@ public class LayoutPanel {
             int trackTop = viewTop(), trackH = viewBottom() - viewTop();
             int thumbH = Math.max(10, trackH * (list.size() - max) / list.size());
             int thumbY = trackTop + (trackH - thumbH) * scroll[selected] / max;
-            int barX = rightSide ? contentX + 2 : contentX + w - 4;
-            g.fill(barX, trackTop, barX + 2, trackTop + trackH, 0x40FFFFFF);
-            g.fill(barX, thumbY, barX + 2, thumbY + thumbH, 0xC0FFFFFF);
+            int barX = rightSide ? contentX : contentX + w - SCROLLER_W - 1;
+            g.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER_BACKGROUND, barX, trackTop, SCROLLER_W, trackH);
+            g.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER, barX, thumbY, SCROLLER_W, thumbH);
         }
 
         // reset button
         int ry = resetY();
         boolean hoverReset = interactive && mouseX >= x && mouseX < x + rw && mouseY >= ry && mouseY < ry + RESET_H;
-        drawButton(g, x, ry, rw, RESET_H, "Reset Position", hoverReset, 0xFF3A3A3A);
+        drawButton(g, x, ry, rw, RESET_H, "Reset Position", hoverReset, 0xFFFFFFFF);
 
         // resize handle
         int handleX = handleX(left);
@@ -282,41 +300,45 @@ public class LayoutPanel {
         String line2 = TAB_NAMES[screen.selected()] + "?";
         int pw = Math.clamp(Math.max(font.width(line1), font.width(line2)) + 20, 160, screen.width - 20);
         int ph = 62, px = (screen.width - pw) / 2, py = (screen.height - ph) / 2;
-        g.fill(px - 1, py - 1, px + pw + 1, py + ph + 1, 0xFF505050);
-        g.fill(px, py, px + pw, py + ph, 0xFF151515);
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, POPUP_BACKGROUND, px, py, pw, ph);
         g.text(font, line1, px + (pw - font.width(line1)) / 2, py + 8, TEXT, false);
         g.text(font, line2, px + (pw - font.width(line2)) / 2, py + 19, 0xFFFFFFFF, false);
 
-        int bw = (pw - 30) / 2, by = py + ph - 24;
-        drawButton(g, px + 10, by, bw, 16, "Reset", inside(mouseX, mouseY, px + 10, by, bw, 16), 0xFF7A2A2A);
-        drawButton(g, px + 20 + bw, by, bw, 16, "Cancel", inside(mouseX, mouseY, px + 20 + bw, by, bw, 16), 0xFF3A3A3A);
+        int bw = (pw - 30) / 2, by = py + ph - 28;
+        drawButton(g, px + 10, by, bw, 20, "Reset", inside(mouseX, mouseY, px + 10, by, bw, 20), RED_TEXT);
+        drawButton(g, px + 20 + bw, by, bw, 20, "Cancel", inside(mouseX, mouseY, px + 20 + bw, by, bw, 20), 0xFFFFFFFF);
     }
 
     private boolean popupClick(double mx, double my) {
         int pw = Math.clamp(Math.max(font().width("Reset the position of"), font().width(TAB_NAMES[screen.selected()] + "?")) + 20, 160, screen.width - 20);
         int ph = 62, px = (screen.width - pw) / 2, py = (screen.height - ph) / 2;
-        int bw = (pw - 30) / 2, by = py + ph - 24;
-        if (inside(mx, my, px + 10, by, bw, 16)) {
+        int bw = (pw - 30) / 2, by = py + ph - 28;
+        if (inside(mx, my, px + 10, by, bw, 20)) {
             screen.resetPosition(screen.selected());
             confirmingReset = false;
-        } else if (inside(mx, my, px + 20 + bw, by, bw, 16) || !inside(mx, my, px, py, pw, ph)) {
+        } else if (inside(mx, my, px + 20 + bw, by, bw, 20) || !inside(mx, my, px, py, pw, ph)) {
             confirmingReset = false;
         }
         return true;    // the popup is modal
     }
 
-    private static void drawButton(GuiGraphicsExtractor g, int x, int y, int w, int h, String text, boolean hover, int color) {
-        Font font = font();
-        g.fill(x, y, x + w, y + h, hover ? brighten(color) : color);
-        g.fill(x, y + h - 1, x + w, y + h, 0xFF000000);
-        g.text(font, text, x + (w - font.width(text)) / 2, y + (h - font.lineHeight) / 2 + 1, 0xFFFFFFFF, true);
+    /// Vanilla button background (YACL's drawButtonRect); the highlighted sprite has the white border
+    private static void drawButtonRect(GuiGraphicsExtractor g, int x, int y, int w, int h, boolean hover) {
+        g.blitSprite(RenderPipelines.GUI_TEXTURED, hover ? BUTTON_HIGHLIGHTED : BUTTON, x, y, w, h);
     }
 
-    private static int brighten(int color) {
-        int r = Math.min(255, ((color >> 16) & 0xFF) + 30);
-        int gr = Math.min(255, ((color >> 8) & 0xFF) + 30);
-        int b = Math.min(255, (color & 0xFF) + 30);
-        return (color & 0xFF000000) | (r << 16) | (gr << 8) | b;
+    private static void drawButton(GuiGraphicsExtractor g, int x, int y, int w, int h, String text, boolean hover, int textColor) {
+        Font font = font();
+        drawButtonRect(g, x, y, w, h, hover);
+        g.text(font, text, x + (w - font.width(text)) / 2 + 1, y + (h - font.lineHeight) / 2 + 1, textColor, true);
+    }
+
+    /// Cuts text down with "..." until it fits, like YACL does with long option names
+    private static String shorten(String text, int maxWidth) {
+        Font font = font();
+        if (font.width(text) <= maxWidth) return text;
+        while (!text.isEmpty() && font.width(text + "...") > maxWidth) text = text.substring(0, text.length() - 1);
+        return text.strip() + "...";
     }
 
     private static boolean inside(double mx, double my, int x, int y, int w, int h) {
@@ -432,6 +454,7 @@ public class LayoutPanel {
 
     public void mouseReleased() {
         resizing = false;
+        if (activeSlider != null) activeSlider.dragging = false;
         activeSlider = null;
     }
 
@@ -465,6 +488,13 @@ public class LayoutPanel {
         static int nameColor(boolean enabled) {
             return enabled ? TEXT : TEXT_DISABLED;
         }
+
+        // Every option is a vanilla button (BUTTON_H tall, with a 2px gap below), like a YACL option row
+        static final int BUTTON_H = 20, PAD = 5;
+
+        static int textY(int y) {
+            return (int) (y + BUTTON_H / 2f - font().lineHeight / 2f);
+        }
     }
 
     private static class ToggleRow extends Row {
@@ -477,19 +507,17 @@ public class LayoutPanel {
             this.set = set;
         }
 
-        @Override int height() { return 16; }
+        @Override int height() { return BUTTON_H + 2; }
 
         @Override
         void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
-            g.text(font, name, x, y + 4, nameColor(enabled), false);
+            drawButtonRect(g, x, y, w, BUTTON_H, inside(mouseX, mouseY, x, y, w, BUTTON_H));
             boolean on = get.getAsBoolean();
-            int pw = 28, px = x + w - pw;
-            int color = on ? 0xFF2E7D32 : 0xFF8E2424;
-            boolean hover = inside(mouseX, mouseY, x, y, w, height());
-            g.fill(px, y + 2, px + pw, y + 14, hover ? brighten(color) : color);
-            String text = on ? "ON" : "OFF";
-            g.text(font, text, px + (pw - font.width(text)) / 2, y + 4, 0xFFFFFFFF, true);
+            String value = on ? "ON" : "OFF";
+            int valueX = x + w - PAD - font.width(value);
+            g.text(font, shorten(name, valueX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
+            g.text(font, value, valueX, textY(y), on ? GREEN_TEXT : RED_TEXT, true);
         }
 
         @Override
@@ -515,33 +543,50 @@ public class LayoutPanel {
             this.set = set;
         }
 
-        @Override int height() { return 26; }
+        private static final int THUMB_W = 4;
+        boolean dragging;
+
+        @Override int height() { return BUTTON_H + 2; }
+
+        // The slider takes the right third of the button, like YACL's
+        private static int trackW(int w)         { return w / 3; }
+        private static int trackX(int x, int w)  { return x + w - PAD - THUMB_W / 2 - trackW(w); }
 
         @Override
         void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
-            double value = get.getAsDouble();
-            g.text(font, name, x, y + 2, nameColor(enabled), false);
-            String text = format.apply(value);
-            g.text(font, text, x + w - font.width(text), y + 2, TEXT_DIM, false);
+            boolean hovered = dragging || inside(mouseX, mouseY, x, y, w, BUTTON_H);
+            drawButtonRect(g, x, y, w, BUTTON_H, hovered);
 
-            int trackY = y + 15;
-            int knob = x + (int) Math.round((Math.clamp(value, min, max) - min) / (max - min) * (w - 4));
-            boolean hover = inside(mouseX, mouseY, x, y + 12, w, 12);
-            g.fill(x, trackY, x + w, trackY + 4, 0xFF2A2A2A);
-            g.fill(x, trackY, knob + 2, trackY + 4, ACCENT);
-            g.fill(knob, trackY - 3, knob + 4, trackY + 7, hover ? 0xFFFFFFFF : 0xFFC8C8C8);
+            double value = get.getAsDouble();
+            String text = format.apply(value);
+            int valueRight = x + w - PAD;
+            if (hovered) {
+                // Track and thumb with their shadows, then the value moves left of the slider
+                int trackX = trackX(x, w), trackW = trackW(w), centerY = y + BUTTON_H / 2;
+                int thumbX = trackX + (int) (trackW * Math.clamp((value - min) / (max - min), 0.0, 1.0));
+                g.fill(trackX, centerY - 1, trackX + trackW, centerY, 0xFFFFFFFF);
+                g.fill(trackX + 1, centerY, trackX + trackW + 1, centerY + 1, 0xFF404040);
+                g.fill(thumbX - THUMB_W / 2 + 1, centerY - 4, thumbX + THUMB_W / 2 + 1, centerY + 6, 0xFF404040);
+                g.fill(thumbX - THUMB_W / 2, centerY - 5, thumbX + THUMB_W / 2, centerY + 5, 0xFFFFFFFF);
+                valueRight = trackX - 6;
+            }
+            int valueX = valueRight - font.width(text);
+            g.text(font, shorten(name, valueX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
+            g.text(font, text, valueX, textY(y), 0xFFFFFFFF, true);
         }
 
         @Override
         boolean click(int x, int y, int w, double mx, double my, int button) {
-            if (button != LEFT_CLICK || my < y + 11) return false;
+            int trackX = trackX(x, w);
+            if (button != LEFT_CLICK || mx < trackX - THUMB_W || mx > trackX + trackW(w) + THUMB_W) return false;
+            dragging = true;
             drag(x, w, mx);
             return true;
         }
 
         void drag(int x, int w, double mx) {
-            double fraction = Math.clamp((mx - x - 2) / (w - 4), 0.0, 1.0);
+            double fraction = Math.clamp((mx - trackX(x, w)) / trackW(w), 0.0, 1.0);
             double value = min + Math.round(fraction * (max - min) / step) * step;
             set.accept(Math.clamp(value, min, max));
         }
@@ -575,7 +620,7 @@ public class LayoutPanel {
             this.set = set;
         }
 
-        @Override int height() { return 20; }
+        @Override int height() { return BUTTON_H + 2; }
 
         private boolean focused() {
             return focusedColor == this;
@@ -588,11 +633,14 @@ public class LayoutPanel {
         @Override
         void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
+            drawButtonRect(g, x, y, w, BUTTON_H, inside(mouseX, mouseY, x, y, w, BUTTON_H) || focused());
+            x += PAD;           // the rest is laid out inside the button's padding
+            w -= PAD * 2;
             if (!focused()) inputField = hex();          // follow the sliders while not typing
 
-            int xLimit = x + w, centerY = y + height() / 2;
-            boolean hovered = inside(mouseX, mouseY, x, y, w, height()) || focused();
-            int textY = (int) (y + height() / 2f - font.lineHeight / 2f);
+            int xLimit = x + w, centerY = y + BUTTON_H / 2;
+            boolean hovered = inside(mouseX, mouseY, x - PAD, y, w + PAD * 2, BUTTON_H) || focused();
+            int textY = textY(y);
             g.text(font, name, x, textY, nameColor(enabled), true);
 
             String text = hex();
@@ -601,7 +649,7 @@ public class LayoutPanel {
             int fieldX = xLimit - fieldW, fieldY = centerY - font.lineHeight / 2, fieldYLimit = fieldY + font.lineHeight;
 
             // Preview square: small at the right edge, or bigger and left of the text while hovered
-            int previewSize = (height() - Y_PADDING * 2) / 2;
+            int previewSize = (BUTTON_H - Y_PADDING * 2) / 2;
             int previewX = xLimit - previewSize, previewY = centerY - previewSize / 2;
 
             if (hovered) {
@@ -765,7 +813,7 @@ public class LayoutPanel {
 
     /// Integer field with - and + buttons. Left click steps by 1, right click by 10.
     private static class StepperRow extends Row {
-        private static final int BUTTON = 12;
+        private static final int BUTTON = 14;
         private final int min, max;
         private final IntSupplier get;
         private final IntConsumer set;
@@ -778,28 +826,31 @@ public class LayoutPanel {
             this.set = set;
         }
 
-        @Override int height() { return 16; }
+        @Override int height() { return BUTTON_H + 2; }
+
+        private static int buttonY(int y) { return y + (BUTTON_H - BUTTON) / 2; }
 
         @Override
         void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
-            g.text(font, name, x, y + 4, nameColor(enabled), false);
+            drawButtonRect(g, x, y, w, BUTTON_H, inside(mouseX, mouseY, x, y, w, BUTTON_H));
             String value = String.valueOf(get.getAsInt());
-            int valueW = Math.max(font.width("0000"), font.width(value)) + 4;
-            int plusX = x + w - BUTTON, valueX = plusX - valueW, minusX = valueX - BUTTON;
-            drawButton(g, minusX, y + 2, BUTTON, BUTTON, "-", inside(mouseX, mouseY, minusX, y + 2, BUTTON, BUTTON), 0xFF3A3A3A);
-            drawButton(g, plusX, y + 2, BUTTON, BUTTON, "+", inside(mouseX, mouseY, plusX, y + 2, BUTTON, BUTTON), 0xFF3A3A3A);
-            g.text(font, value, valueX + (valueW - font.width(value)) / 2, y + 4, 0xFFFFFFFF, false);
+            int valueW = Math.max(font.width("00"), font.width(value)) + 5;
+            int plusX = x + w - 3 - BUTTON, valueX = plusX - valueW, minusX = valueX - BUTTON, by = buttonY(y);
+            g.text(font, shorten(name, minusX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
+            drawButton(g, minusX, by, BUTTON, BUTTON, "-", inside(mouseX, mouseY, minusX, by, BUTTON, BUTTON), 0xFFFFFFFF);
+            drawButton(g, plusX, by, BUTTON, BUTTON, "+", inside(mouseX, mouseY, plusX, by, BUTTON, BUTTON), 0xFFFFFFFF);
+            g.text(font, value, valueX + (valueW - font.width(value)) / 2, textY(y), 0xFFFFFFFF, true);
         }
 
         @Override
         boolean click(int x, int y, int w, double mx, double my, int button) {
             int amount = button == RIGHT_CLICK ? 10 : 1;
             Font font = font();
-            int valueW = Math.max(font.width("0000"), font.width(String.valueOf(get.getAsInt()))) + 4;
-            int plusX = x + w - BUTTON, minusX = plusX - valueW - BUTTON;
-            if (inside(mx, my, plusX, y + 2, BUTTON, BUTTON)) set.accept(Math.min(max, get.getAsInt() + amount));
-            else if (inside(mx, my, minusX, y + 2, BUTTON, BUTTON)) set.accept(Math.max(min, get.getAsInt() - amount));
+            int valueW = Math.max(font.width("00"), font.width(String.valueOf(get.getAsInt()))) + 5;
+            int plusX = x + w - 3 - BUTTON, minusX = plusX - valueW - BUTTON, by = buttonY(y);
+            if (inside(mx, my, plusX, by, BUTTON, BUTTON)) set.accept(Math.min(max, get.getAsInt() + amount));
+            else if (inside(mx, my, minusX, by, BUTTON, BUTTON)) set.accept(Math.max(min, get.getAsInt() - amount));
             return false;
         }
     }

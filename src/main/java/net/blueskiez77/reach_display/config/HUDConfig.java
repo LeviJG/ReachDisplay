@@ -163,7 +163,7 @@ public class HUDConfig extends Screen {
 
             int background = i == draggingIndex || isHovering ? 0xA0303030 : enabled ? 0x60000000 : 0x30000000;
             g.fill(x, y, x + w, y + h, background);
-            if (i == selectedIndex) outline(g, x - 1, y - 1, w + 2, h + 2, SELECTION_COLOR);
+            if (i == selectedIndex) selectionOutline(g, x - 1, y - 1, w + 2, h + 2);
 
             int color = enabled ? CustomRender.getARGBColor(i) : DISABLED_TEXT_COLOR;
             CustomRender.drawScaledText(g, label(i), boxX(i) + CustomRender.PADDING, boxY(i) + CustomRender.PADDING, scale(i), color, enabled && shadow(i));
@@ -173,7 +173,8 @@ public class HUDConfig extends Screen {
         panel.renderPopup(g, mouseX, mouseY);
     }
 
-    private static void outline(GuiGraphicsExtractor g, int x, int y, int w, int h, int color) {
+    private static void selectionOutline(GuiGraphicsExtractor g, int x, int y, int w, int h) {
+        int color = SELECTION_COLOR;
         g.fill(x, y, x + w, y + 1, color);
         g.fill(x, y + h - 1, x + w, y + h, color);
         g.fill(x, y + 1, x + 1, y + h - 1, color);
