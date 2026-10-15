@@ -29,7 +29,7 @@ public class LayoutPanel {
     private static final String[] TAB_SHORT_NAMES = { "Dist", "Hit", "Avg" };
 
     private static final int STRIP_WIDTH = 20, TOGGLE_H = 20, TAB_PAD = 10;
-    private static final int HEADER_H = 18, RESET_H = 18, ROW_INSET = 6, HANDLE_W = 3;
+    private static final int HEADER_H = 18, MORE_OPTIONS_H = 18, ROW_INSET = 6, HANDLE_W = 3;
     private static final int MIN_WIDTH = 100;
     private static final long SLIDE_MS = 180;
 
@@ -61,7 +61,7 @@ public class LayoutPanel {
     private final int[] scroll = new int[3];
 
     private boolean expanded = true;
-    private boolean rightSide = false;
+    private boolean rightSide = true;
     private float sideProgress = 1;                // 0 = docked left, 1 = docked right
     private long lastFrameNanos = System.nanoTime();
     private int contentWidth = 145;
@@ -85,7 +85,8 @@ public class LayoutPanel {
                 new ChannelRow("Blue", 0, () -> c.distanceTextColor, v -> c.distanceTextColor = v),
                 new SliderRow("Text Opacity", 0.01, 1.0, 0.01, v -> String.format("%.2f", v), () -> c.distanceTextOpacity, v -> c.distanceTextOpacity = v),
                 new ToggleRow("Text Shadow", () -> c.distanceTextShadow, v -> c.distanceTextShadow = v),
-                new StepperRow("Decimal Places", 1, 10, () -> c.distanceDecimalPlaces, v -> c.distanceDecimalPlaces = v)));
+                new StepperRow("Decimal Places", 1, 10, () -> c.distanceDecimalPlaces, v -> c.distanceDecimalPlaces = v),
+                new ButtonRow("Reset Position", () -> confirmingReset = true)));
 
         rows.add(List.of(
                 new ToggleRow("Enabled", () -> c.hitDistanceEnabled, v -> c.hitDistanceEnabled = v),
@@ -96,7 +97,8 @@ public class LayoutPanel {
                 new ChannelRow("Blue", 0, () -> c.hitDistanceTextColor, v -> c.hitDistanceTextColor = v),
                 new SliderRow("Text Opacity", 0.01, 1.0, 0.01, v -> String.format("%.2f", v), () -> c.hitDistanceTextOpacity, v -> c.hitDistanceTextOpacity = v),
                 new ToggleRow("Text Shadow", () -> c.hitDistanceTextShadow, v -> c.hitDistanceTextShadow = v),
-                new StepperRow("Decimal Places", 1, 10, () -> c.hitDistanceDecimalPlaces, v -> c.hitDistanceDecimalPlaces = v)));
+                new StepperRow("Decimal Places", 1, 10, () -> c.hitDistanceDecimalPlaces, v -> c.hitDistanceDecimalPlaces = v),
+                new ButtonRow("Reset Position", () -> confirmingReset = true)));
 
         rows.add(List.of(
                 new ToggleRow("Enabled", () -> c.averageHitEnabled, v -> c.averageHitEnabled = v),
@@ -108,7 +110,8 @@ public class LayoutPanel {
                 new ChannelRow("Blue", 0, () -> c.averageHitTextColor, v -> c.averageHitTextColor = v),
                 new SliderRow("Text Opacity", 0.01, 1.0, 0.01, v -> String.format("%.2f", v), () -> c.averageHitTextOpacity, v -> c.averageHitTextOpacity = v),
                 new ToggleRow("Text Shadow", () -> c.averageHitTextShadow, v -> c.averageHitTextShadow = v),
-                new StepperRow("Decimal Places", 1, 10, () -> c.averageHitDecimalPlaces, v -> c.averageHitDecimalPlaces = v)));
+                new StepperRow("Decimal Places", 1, 10, () -> c.averageHitDecimalPlaces, v -> c.averageHitDecimalPlaces = v),
+                new ButtonRow("Reset Position", () -> confirmingReset = true)));
     }
 
     /* ----- state ----- */
@@ -186,7 +189,7 @@ public class LayoutPanel {
     }
 
     private int viewTop()    { return HEADER_H; }
-    private int viewBottom() { return screen.height - RESET_H - 6; }
+    private int viewBottom() { return screen.height - MORE_OPTIONS_H - 6; }
 
     /// Index of the last row that can be scrolled to the top while still filling the view
     private int maxScroll(int tab) {
@@ -203,7 +206,7 @@ public class LayoutPanel {
     private int rowX(int left)  { return contentX(left) + ROW_INSET; }
     private int rowW()          { return width() - ROW_INSET * 2 - 2; }
 
-    private int resetY() { return screen.height - RESET_H - 3; }
+    private int moreOptionsY() { return screen.height - MORE_OPTIONS_H - 3; }
 
     /* ----- rendering ----- */
 
@@ -254,7 +257,8 @@ public class LayoutPanel {
         graphicsExtractor.fill(edgeX, 0, edgeX + 1, screen.height, 0xFF000000);
 
         boolean enabled = HUDConfig.isEnabled(selected);
-        graphicsExtractor.text(font, TAB_NAMES[selected], contentX + ROW_INSET, 5, enabled ? 0xFFFFFFFF : TEXT_DISABLED, true);
+        String title = shorten(TAB_NAMES[selected], w - ROW_INSET * 2);     // "Average Hit Distance" can be wider than the menu
+        graphicsExtractor.text(font, title, contentX + ROW_INSET, 5, enabled ? 0xFFFFFFFF : TEXT_DISABLED, true);
         graphicsExtractor.fill(contentX + ROW_INSET, HEADER_H - 3, contentX + w - ROW_INSET, HEADER_H - 2, 0xFF404040);
 
         List<Row> list = rows.get(selected);
@@ -281,10 +285,9 @@ public class LayoutPanel {
             graphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER, barX, thumbY, SCROLLER_W, thumbH);
         }
 
-        // reset button
-        int ry = resetY();
-        boolean hoverReset = interactive && enabled && mouseX >= x && mouseX < x + rw && mouseY >= ry && mouseY < ry + RESET_H;
-        drawButton(graphicsExtractor, x, ry, rw, RESET_H, "Reset Position", hoverReset, enabled, 0xFFFFFFFF);
+        int moreY = moreOptionsY();
+        boolean hoverMore = interactive && mouseX >= x && mouseX < x + rw && mouseY >= moreY && mouseY < moreY + MORE_OPTIONS_H;
+        drawButton(graphicsExtractor, x, moreY, rw, MORE_OPTIONS_H, "Edit in Menu", hoverMore, 0xFFFFFFFF);
 
         // resize handle
         int handleX = handleX(left);
@@ -376,8 +379,7 @@ public class LayoutPanel {
             for (int i = 0; i < 3; i++) {
                 int top = tabTop(i);
                 if (my >= top && my < top + tabHeight(i)) {
-                    screen.select(i);
-                    expanded = true;
+                    screen.select(i);              // selecting a tab doesn't expand a collapsed menu
                     return true;
                 }
             }
@@ -392,8 +394,8 @@ public class LayoutPanel {
 
         int x = rowX(left), rw = rowW();
         boolean enabled = HUDConfig.isEnabled(screen.selected());
-        if (button == LEFT_CLICK && enabled && inside(mx, my, x, resetY(), rw, RESET_H)) {
-            confirmingReset = true;
+        if (button == LEFT_CLICK && inside(mx, my, x, moreOptionsY(), rw, MORE_OPTIONS_H)) {
+            screen.openMoreOptions(screen.selected());
             return true;
         }
 
@@ -512,6 +514,29 @@ public class LayoutPanel {
 
         static int textY(int y) {
             return (int) (y + BUTTON_H / 2f - font().lineHeight / 2f);
+        }
+    }
+
+    /// A full-width button with a centered label, e.g. "Reset Position"
+    private static class ButtonRow extends Row {
+        private final Runnable action;
+
+        ButtonRow(String name, Runnable action) {
+            super(name);
+            this.action = action;
+        }
+
+        @Override int height() { return BUTTON_H + 2; }
+
+        @Override
+        void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
+            drawButton(g, x, y, w, BUTTON_H, shorten(name, w - PAD * 2), inside(mouseX, mouseY, x, y, w, BUTTON_H), enabled, 0xFFFFFFFF);
+        }
+
+        @Override
+        boolean click(int x, int y, int w, double mx, double my, int button) {
+            if (button == LEFT_CLICK) action.run();
+            return false;
         }
     }
 

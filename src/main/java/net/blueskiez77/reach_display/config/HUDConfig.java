@@ -4,6 +4,7 @@ import net.blueskiez77.reach_display.data.SharedData;
 import net.blueskiez77.reach_display.utils.CustomRender;
 import net.blueskiez77.reach_display.utils.ReachCalculation;
 import com.mojang.blaze3d.platform.InputConstants;
+import dev.isxander.yacl3.gui.YACLScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -247,6 +248,21 @@ public class HUDConfig extends Screen {
             panel.cancelReset();
             return;
         }
+        saveAndLeave();
+    }
+
+    /// "More Options": save, then open the main config screen on this number's tab
+    void openMoreOptions(int index) {
+        Screen menu = saveAndLeave();
+        // The main menu's tabs are General, Distance, Hit Distance, Average Hit Distance (see ConfigGUI), so the
+        // numbers' tabs start at 1. The tab bar only exists once the screen is open, which saveAndLeave() just did.
+        if (menu instanceof YACLScreen yacl && yacl.tabNavigationBar != null) {
+            yacl.tabNavigationBar.selectTab(index + 1, false);
+        }
+    }
+
+    /// Commits the dragged positions, saves, and opens the main config screen (returned)
+    private Screen saveAndLeave() {
         panel.clearFocus();
 
         DisplayConfig c = DisplayConfig.INSTANCE;
@@ -256,6 +272,8 @@ public class HUDConfig extends Screen {
         c.averageHitXOffset = tempX[2];  c.averageHitYOffset = tempY[2];
 
         ConfigManager.save();
-        Minecraft.getInstance().setScreenAndShow(returnTo.get());
+        Screen menu = returnTo.get();
+        Minecraft.getInstance().setScreenAndShow(menu);
+        return menu;
     }
 }
