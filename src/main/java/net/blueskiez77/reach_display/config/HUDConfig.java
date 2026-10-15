@@ -45,6 +45,14 @@ public class HUDConfig extends Screen {
         };
     }
 
+    // The three numbers' text, worked out once per frame: measuring the distance and formatting it on every
+    // boxWidth() call (several per number per frame, plus every mouse move) was wasted work
+    private final String[] labels = new String[3];
+
+    private void updateLabels() {
+        for (int i = 0; i < 3; i++) labels[i] = label(i);
+    }
+
     private String label(int i) {
         Minecraft mc = Minecraft.getInstance();
         Player player = mc.player;
@@ -114,6 +122,7 @@ public class HUDConfig extends Screen {
         tempX[0] = c.distanceXOffset;    tempY[0] = c.distanceYOffset;
         tempX[1] = c.hitXOffset;         tempY[1] = c.hitYOffset;
         tempX[2] = c.averageHitXOffset;  tempY[2] = c.averageHitYOffset;
+        updateLabels();
     }
 
     /* ----- selection (shared with the side menu) ----- */
@@ -137,7 +146,7 @@ public class HUDConfig extends Screen {
 
     /* ----- geometry helpers ----- */
 
-    private int boxWidth(int i)  { return CustomRender.boxWidth(this.font, label(i), scale(i)); }
+    private int boxWidth(int i)  { return CustomRender.boxWidth(this.font, labels[i], scale(i)); }
     private int boxHeight(int i) { return CustomRender.boxHeight(this.font, scale(i)); }
 
     private float boxX(int i) { return CustomRender.boxX(tempX[i], this.width, boxWidth(i)); }
@@ -155,6 +164,7 @@ public class HUDConfig extends Screen {
 
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
+        updateLabels();
         g.fill(0, 0, this.width, this.height, 0x30101010);
         super.extractRenderState(g, mouseX, mouseY, partial);
 
@@ -170,7 +180,7 @@ public class HUDConfig extends Screen {
                 boolean isHovering = !popup && draggingIndex < 0 && !panel.contains(mouseX, mouseY) && posTest(i, mouseX, mouseY);
                 g.fill(x, y, x + w, y + h, i == draggingIndex || isHovering ? 0xA0303030 : 0x60000000);
             }
-            CustomRender.drawScaledText(g, label(i), boxX(i) + CustomRender.PADDING, boxY(i) + CustomRender.PADDING, scale(i), CustomRender.getARGBColor(i), shadow(i));
+            CustomRender.drawScaledText(g, labels[i], boxX(i) + CustomRender.PADDING, boxY(i) + CustomRender.PADDING, scale(i), CustomRender.getARGBColor(i), shadow(i));
         }
 
         panel.render(g, mouseX, mouseY);

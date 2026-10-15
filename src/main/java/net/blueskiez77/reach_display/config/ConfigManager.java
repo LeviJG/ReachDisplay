@@ -2,11 +2,15 @@ package net.blueskiez77.reach_display.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
+import net.blueskiez77.reach_display.ReachDisplay;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -20,49 +24,21 @@ public class ConfigManager {
         if (!Files.exists(path)) return;
         try (Reader reader = Files.newBufferedReader(path)) {
             DisplayConfig loaded = GSON.fromJson(reader, DisplayConfig.class);
-            if (loaded != null) {
+            if (loaded == null) return;
 
-                // -------------------- Load Internal Vars -------------------- //
-                displayConfig.distanceXOffset = loaded.distanceXOffset;
-                displayConfig.distanceYOffset = loaded.distanceYOffset;
-                displayConfig.hitXOffset = loaded.hitXOffset;
-                displayConfig.hitYOffset = loaded.hitYOffset;
-                displayConfig.averageHitXOffset = loaded.averageHitXOffset;
-                displayConfig.averageHitYOffset = loaded.averageHitYOffset;
-                resetOffScreenPositions(displayConfig);
-
-                // -------------------- Load General Vars -------------------- //
-                displayConfig.enabled = loaded.enabled;
-                displayConfig.showPlayersOnly = loaded.showPlayersOnly;
-                displayConfig.distanceCalculationMethod = loaded.distanceCalculationMethod;
-
-                // -------------------- Load Distance Vars -------------------- //
-                displayConfig.distanceEnabled = loaded.distanceEnabled;
-                displayConfig.distanceTextScale = loaded.distanceTextScale;
-                displayConfig.distanceTextColor = loaded.distanceTextColor;
-                displayConfig.distanceTextOpacity = loaded.distanceTextOpacity;
-                displayConfig.distanceTextShadow = loaded.distanceTextShadow;
-                displayConfig.distanceDecimalPlaces = loaded.distanceDecimalPlaces;
-
-                // -------------------- Load Hit Distance Vars -------------------- //
-                displayConfig.hitDistanceEnabled = loaded.hitDistanceEnabled;
-                displayConfig.hitDistanceTextScale = loaded.hitDistanceTextScale;
-                displayConfig.hitDistanceTextColor = loaded.hitDistanceTextColor;
-                displayConfig.hitDistanceTextOpacity = loaded.hitDistanceTextOpacity;
-                displayConfig.hitDistanceTextShadow = loaded.hitDistanceTextShadow;
-                displayConfig.hitDistanceDecimalPlaces = loaded.hitDistanceDecimalPlaces;
-
-                // -------------------- Load Average Hit Distance Vars -------------------- //
-                displayConfig.averageHitEnabled = loaded.averageHitEnabled;
-                displayConfig.numberOfHitsCounted = loaded.numberOfHitsCounted;
-                displayConfig.averageHitTextScale = loaded.averageHitTextScale;
-                displayConfig.averageHitTextColor = loaded.averageHitTextColor;
-                displayConfig.averageHitTextOpacity = loaded.averageHitTextOpacity;
-                displayConfig.averageHitTextShadow = loaded.averageHitTextShadow;
-                displayConfig.averageHitDecimalPlaces = loaded.averageHitDecimalPlaces;
+            // Copy every setting, so new fields in DisplayConfig are loaded without being listed here.
+            // Settings missing from the file keep their defaults (Gson starts from new DisplayConfig()), and null
+            // ones (e.g. an enum value that no longer exists) are skipped so they keep theirs too.
+            for (Field field : DisplayConfig.class.getFields()) {
+                if (Modifier.isStatic(field.getModifiers())) continue;
+                Object value = field.get(loaded);
+                if (value != null) field.set(displayConfig, value);
             }
-        } catch (IOException e) {
-            // log
+            resetOffScreenPositions(displayConfig);
+        } catch (IOException | JsonParseException e) {
+            ReachDisplay.LOGGER.error("Couldn't read {}, using the default settings", FILE_NAME, e);
+        } catch (IllegalAccessException e) {
+            ReachDisplay.LOGGER.error("Couldn't apply the settings from {}", FILE_NAME, e);
         }
     }
 
@@ -93,7 +69,7 @@ public class ConfigManager {
         try (Writer writer = Files.newBufferedWriter(path)) {
             GSON.toJson(DisplayConfig.INSTANCE, writer);
         } catch (IOException e) {
-            // log
+            ReachDisplay.LOGGER.error("Couldn't save {}", FILE_NAME, e);
         }
     }
 }

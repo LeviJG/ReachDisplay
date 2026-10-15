@@ -9,7 +9,6 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -444,19 +443,9 @@ public class LayoutPanel {
         setFocusedColor(null);
     }
 
-    /// Minecraft 26.3 only delivers typed characters while a text field has told if it's focused (YACL does the same). Looked up by reflection, so versions without the method simply skip it instead of crashing.
+    /// Minecraft 26.3 only delivers typed characters while a text field has told it it's focused (YACL does the same)
     private void setTextInputFocus(boolean focused) {
-        try {
-            for (Method method : Minecraft.class.getMethods()) {
-                Class<?>[] params = method.getParameterTypes();
-                if (method.getName().equals("onTextInputFocusChange") && params.length == 2
-                        && params[0].isInstance(screen) && params[1] == boolean.class) {
-                    method.invoke(Minecraft.getInstance(), screen, focused);
-                    return;
-                }
-            }
-        } catch (ReflectiveOperationException | RuntimeException ignored) {
-        }
+        Minecraft.getInstance().onTextInputFocusChange(screen, focused);
     }
 
     /// Keys go to the focused hex field. Returns true if it used the key, so the screen must ignore it.

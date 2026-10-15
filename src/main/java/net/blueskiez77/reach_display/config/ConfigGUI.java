@@ -57,10 +57,11 @@ public class ConfigGUI {
                                 .name(Component.literal("Reset HUD Positions"))
                                 .description(OptionDescription.of(Component.literal("This resets the position of the hit numbers (from top to bottom) distance, hit distance, and average hit distance. NOTE: You may need to use this option if you updated from an older version of the mod")))
                                 .action((screen, opt) -> {
-                                    DisplayConfig cfg = DisplayConfig.INSTANCE;
-                                    cfg.distanceXOffset   = 0.5; cfg.distanceYOffset   = 0.55;
-                                    cfg.hitXOffset        = 0.5; cfg.hitYOffset        = 0.65;
-                                    cfg.averageHitXOffset = 0.5; cfg.averageHitYOffset = 0.9;
+                                    // Defaults come from DisplayConfig, so they're only defined in one place
+                                    DisplayConfig cfg = DisplayConfig.INSTANCE, defaults = new DisplayConfig();
+                                    cfg.distanceXOffset   = defaults.distanceXOffset;   cfg.distanceYOffset   = defaults.distanceYOffset;
+                                    cfg.hitXOffset        = defaults.hitXOffset;        cfg.hitYOffset        = defaults.hitYOffset;
+                                    cfg.averageHitXOffset = defaults.averageHitXOffset; cfg.averageHitYOffset = defaults.averageHitYOffset;
                                     ConfigManager.save();
                                 })
                                 .build())
