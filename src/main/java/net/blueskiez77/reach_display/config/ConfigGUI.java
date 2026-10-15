@@ -9,6 +9,15 @@ import net.minecraft.network.chat.Component;
 import java.awt.*;
 
 public class ConfigGUI {
+    /// "Open HUD Configurator" button for a number's tab. tab: 0 = distance, 1 = hit distance, 2 = average hit distance
+    private static ButtonOption openHudConfigurator(Screen parent, int tab) {
+        return ButtonOption.createBuilder()
+                .name(Component.literal("Open HUD Configurator"))
+                .description(OptionDescription.of(Component.literal("Opens the HUD configurator")))
+                .action((screen, opt) -> Minecraft.getInstance().setScreenAndShow(new HUDConfig(() -> create(parent), tab)))
+                .build();
+    }
+
     public static Screen create (Screen parent) {
         DisplayConfig c = DisplayConfig.INSTANCE;
 
@@ -61,6 +70,7 @@ public class ConfigGUI {
 
                 .category(ConfigCategory.createBuilder()
                         .name(Component.literal("Distance"))
+                        .option(openHudConfigurator(parent, 0))
                         .option(Option.<Boolean>createBuilder()
                                 .name(Component.literal("Enabled"))
                                 .description(OptionDescription.of(Component.literal("Enable/Disable the distance number")))
@@ -108,6 +118,7 @@ public class ConfigGUI {
 
                 .category(ConfigCategory.createBuilder()
                         .name(Component.literal("Hit Distance"))
+                        .option(openHudConfigurator(parent, 1))
                         .option(Option.<Boolean>createBuilder()
                                 .name(Component.literal("Enabled"))
                                 .description(OptionDescription.of(Component.literal("Enable/Disable the hit distance number")))
@@ -155,6 +166,7 @@ public class ConfigGUI {
 
                 .category(ConfigCategory.createBuilder()
                         .name(Component.literal("Average Hit Distance"))
+                        .option(openHudConfigurator(parent, 2))
                         .option(Option.<Boolean>createBuilder()
                                 .name(Component.literal("Enabled"))
                                 .description(OptionDescription.of(Component.literal("Enable/Disable the average hit distance number")))

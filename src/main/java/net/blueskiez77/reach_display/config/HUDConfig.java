@@ -99,6 +99,12 @@ public class HUDConfig extends Screen {
         };
     }
 
+    /// Opens with the given number's tab selected (0 = distance, 1 = hit distance, 2 = average hit distance)
+    public HUDConfig(Supplier<Screen> returnTo, int tab) {
+        this(returnTo);
+        this.selectedIndex = tab;
+    }
+
     public HUDConfig(Supplier<Screen> returnTo) {
         super(Component.literal("HUD Layout"));
         this.returnTo = returnTo;
