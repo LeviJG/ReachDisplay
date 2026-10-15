@@ -30,7 +30,7 @@ public class LayoutPanel {
 
     private static final int STRIP_WIDTH = 20, TOGGLE_H = 20, TAB_PAD = 10;
     private static final int HEADER_H = 18, RESET_H = 18, ROW_INSET = 6, HANDLE_W = 3;
-    private static final int MIN_WIDTH = 110, MAX_WIDTH = 260;
+    private static final int MIN_WIDTH = 100;
     private static final long SLIDE_MS = 180;
 
     private static final int BG = 0xD0101010, TAB_BG = 0xD0181818;
@@ -63,7 +63,7 @@ public class LayoutPanel {
     private boolean rightSide = false;
     private float sideProgress = 1;                // 0 = docked left, 1 = docked right
     private long lastFrameNanos = System.nanoTime();
-    private int contentWidth = 150;
+    private int contentWidth = 145;
 
     private SliderRow activeSlider;
     private int activeSliderX, activeSliderW;
@@ -132,7 +132,13 @@ public class LayoutPanel {
     }
 
     private int width() {
-        return Math.clamp(contentWidth, MIN_WIDTH, Math.clamp(screen.width / 2, MIN_WIDTH, MAX_WIDTH));
+        return Math.clamp(contentWidth, MIN_WIDTH, maxWidth());
+    }
+
+    /// Widest the options can be: the whole menu (tab strip included) stops one pixel short of the screen's center.
+    /// Never below MIN_WIDTH, since Math.clamp needs min <= max (only matters on very narrow screens).
+    private int maxWidth() {
+        return Math.max(MIN_WIDTH, screen.width / 2 - 1 - STRIP_WIDTH);
     }
 
     private int totalWidth() {
