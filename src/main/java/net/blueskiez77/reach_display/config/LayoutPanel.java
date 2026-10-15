@@ -217,9 +217,8 @@ public class LayoutPanel {
         boolean hoverToggle = mouseX >= stripX && mouseX < stripX + STRIP_WIDTH && mouseY >= 0 && mouseY < TOGGLE_H && !confirmingReset;
         String arrow = (expanded == rightSide ? ">" : "<");      // Points the way the menu will move
 
-        // Draw the collape/expand button
+        // Draw the collapse/expand button (after the strip's background, so the background doesn't dim it)
         drawButton(graphicsExtractor, stripX, 0, STRIP_WIDTH, TOGGLE_H, arrow, hoverToggle, 0xFFFFFFFF);
-        graphicsExtractor.fill(stripX, 0, stripX + STRIP_WIDTH, screen.height, TAB_BG);
 
         String[] labels = tabLabels();
         for (int i = 0; i < 3; i++) {
@@ -249,10 +248,6 @@ public class LayoutPanel {
 
         boolean enabled = HUDConfig.isEnabled(selected);
         graphicsExtractor.text(font, TAB_NAMES[selected], contentX + ROW_INSET, 5, enabled ? 0xFFFFFFFF : TEXT_DISABLED, true);
-        if (!enabled) {
-            String off = "(disabled)";
-            graphicsExtractor.text(font, off, contentX + w - ROW_INSET - font.width(off), 5, TEXT_DISABLED, false);
-        }
         graphicsExtractor.fill(contentX + ROW_INSET, HEADER_H - 3, contentX + w - ROW_INSET, HEADER_H - 2, 0xFF404040);
 
         List<Row> list = rows.get(selected);

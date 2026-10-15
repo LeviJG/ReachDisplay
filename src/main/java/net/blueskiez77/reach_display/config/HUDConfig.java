@@ -20,8 +20,6 @@ import java.util.function.Supplier;
 
 public class HUDConfig extends Screen {
 
-    private static final int SELECTION_COLOR = 0xFFFFD24A;
-    private static final int DISABLED_TEXT_COLOR = 0xFF6A6A6A;
 
     // Options edited in the side menu change DisplayConfig directly, so the screen we return to is rebuilt rather than reused: a reused YACL screen would still hold the old values and write them back on save.
     private final Supplier<Screen> returnTo;
@@ -157,33 +155,24 @@ public class HUDConfig extends Screen {
         // The selected box is drawn last so it stays on top of any box it overlaps
         for (int n = 0; n < 3; n++) {
             int i = (selectedIndex + 1 + n) % 3;
+            if (!isEnabled(i)) continue;            // disabled numbers aren't drawn at all
             int x = pixelX(i), y = pixelY(i), w = boxWidth(i), h = boxHeight(i);
-            boolean enabled = isEnabled(i);
-            boolean isHovering = !popup && draggingIndex < 0 && !panel.contains(mouseX, mouseY) && posTest(i, mouseX, mouseY);
 
-            int background = i == draggingIndex || isHovering ? 0xA0303030 : enabled ? 0x60000000 : 0x30000000;
-            g.fill(x, y, x + w, y + h, background);
-            if (i == selectedIndex) selectionOutline(g, x - 1, y - 1, w + 2, h + 2);
-
-            int color = enabled ? CustomRender.getARGBColor(i) : DISABLED_TEXT_COLOR;
-            CustomRender.drawScaledText(g, label(i), boxX(i) + CustomRender.PADDING, boxY(i) + CustomRender.PADDING, scale(i), color, enabled && shadow(i));
+            // Only the selected number gets a box behind it, a little lighter while hovered or dragged
+            if (i == selectedIndex) {
+                boolean isHovering = !popup && draggingIndex < 0 && !panel.contains(mouseX, mouseY) && posTest(i, mouseX, mouseY);
+                g.fill(x, y, x + w, y + h, i == draggingIndex || isHovering ? 0xA0303030 : 0x60000000);
+            }
+            CustomRender.drawScaledText(g, label(i), boxX(i) + CustomRender.PADDING, boxY(i) + CustomRender.PADDING, scale(i), CustomRender.getARGBColor(i), shadow(i));
         }
 
         panel.render(g, mouseX, mouseY);
         panel.renderPopup(g, mouseX, mouseY);
     }
 
-    private static void selectionOutline(GuiGraphicsExtractor g, int x, int y, int w, int h) {
-        int color = SELECTION_COLOR;
-        g.fill(x, y, x + w, y + 1, color);
-        g.fill(x, y + h - 1, x + w, y + h, color);
-        g.fill(x, y + 1, x + 1, y + h - 1, color);
-        g.fill(x + w - 1, y + 1, x + w, y + h - 1, color);
-    }
-
     private boolean posTest(int i, double mx, double my) {
         int x = pixelX(i), y = pixelY(i);
-        return mx >= x && mx < x + boxWidth(i) && my >= y && my < y + boxHeight(i);
+        return isEnabled(i) && mx >= x && mx < x + boxWidth(i) && my >= y && my < y + boxHeight(i);
     }
 
 
