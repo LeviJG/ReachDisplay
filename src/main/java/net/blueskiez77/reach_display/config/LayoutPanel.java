@@ -28,7 +28,7 @@ public class LayoutPanel {
     private static final String[] TAB_NAMES = { "Distance", "Hit Distance", "Average Hit Distance" };
     private static final String[] TAB_SHORT_NAMES = { "Dist", "Hit", "Avg" };
 
-    private static final int STRIP_W = 20, TOGGLE_H = 20, TAB_PAD = 10;
+    private static final int STRIP_WIDTH = 20, TOGGLE_H = 20, TAB_PAD = 10;
     private static final int HEADER_H = 18, RESET_H = 18, ROW_INSET = 6, HANDLE_W = 3;
     private static final int MIN_WIDTH = 110, MAX_WIDTH = 260;
     private static final long SLIDE_MS = 180;
@@ -53,8 +53,6 @@ public class LayoutPanel {
         return Identifier.fromNamespaceAndPath("minecraft", path);
     }
 
-    // Mouse buttons must be compared with InputConstants (like YACL does): Minecraft 26.3 no longer uses the
-    // old GLFW numbers (0 = left, 1 = right), so hard-coded 0/1 never matched and no option could be clicked.
     private static final int LEFT_CLICK = InputConstants.MOUSE_BUTTON_LEFT, RIGHT_CLICK = InputConstants.MOUSE_BUTTON_RIGHT;
 
     private final HUDConfig screen;
@@ -138,7 +136,7 @@ public class LayoutPanel {
     }
 
     private int totalWidth() {
-        return STRIP_W + (expanded ? width() : 0);
+        return STRIP_WIDTH + (expanded ? width() : 0);
     }
 
     private int left(float progress) {
@@ -151,11 +149,11 @@ public class LayoutPanel {
     }
 
     private int stripX(int left) {
-        return rightSide ? left + totalWidth() - STRIP_W : left;
+        return rightSide ? left + totalWidth() - STRIP_WIDTH : left;
     }
 
     private int contentX(int left) {
-        return rightSide ? left : left + STRIP_W;
+        return rightSide ? left : left + STRIP_WIDTH;
     }
 
     public boolean contains(double mx, double my) {
@@ -202,7 +200,7 @@ public class LayoutPanel {
 
     /* ----- rendering ----- */
 
-    public void render(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    public void render(GuiGraphicsExtractor graphicsExtractor, int mouseX, int mouseY) {
         long now = System.nanoTime();
         float step = (now - lastFrameNanos) / 1_000_000f / SLIDE_MS;
         lastFrameNanos = now;
@@ -215,42 +213,47 @@ public class LayoutPanel {
 
         // tab strip
         int stripX = stripX(left);
-        g.fill(stripX, 0, stripX + STRIP_W, screen.height, TAB_BG);
-        boolean hoverToggle = mouseX >= stripX && mouseX < stripX + STRIP_W && mouseY >= 0 && mouseY < TOGGLE_H && !confirmingReset;
-        String arrow = expanded == rightSide ? ">" : "<";      // points the way the menu will move
-        drawButton(g, stripX, 0, STRIP_W, TOGGLE_H, arrow, hoverToggle, 0xFFFFFFFF);
+        graphicsExtractor.fill(stripX, 0, stripX + STRIP_WIDTH, screen.height, TAB_BG);
+        boolean hoverToggle = mouseX >= stripX && mouseX < stripX + STRIP_WIDTH && mouseY >= 0 && mouseY < TOGGLE_H && !confirmingReset;
+        String arrow = (expanded == rightSide ? ">" : "<");      // Points the way the menu will move
+
+        // Draw the collape/expand button
+        drawButton(graphicsExtractor, stripX, 0, STRIP_WIDTH, TOGGLE_H, arrow, hoverToggle, 0xFFFFFFFF);
+        graphicsExtractor.fill(stripX, 0, stripX + STRIP_WIDTH, screen.height, TAB_BG);
 
         String[] labels = tabLabels();
         for (int i = 0; i < 3; i++) {
-            int top = tabTop(i), h = tabHeight(i);
-            boolean isSelected = i == selected;
-            boolean hover = !confirmingReset && mouseX >= stripX && mouseX < stripX + STRIP_W && mouseY >= top && mouseY < top + h;
+            int top = tabTop(i);
+            int tabLength = tabHeight(i);
+            boolean isSelected = (i == selected);
+            boolean hover = !confirmingReset && mouseX >= stripX && mouseX < stripX + STRIP_WIDTH && mouseY >= top && mouseY < top + tabLength;
             int color = !HUDConfig.isEnabled(i) ? TEXT_DISABLED : isSelected ? 0xFFFFFFFF : TEXT_DIM;
-            g.pose().pushMatrix();
-            g.pose().translate(stripX + STRIP_W / 2f, top + h / 2f);
-            // Rotated so the text runs along the screen edge, and the tab's open side faces the options
-            g.pose().rotate((float) (rightSide ? Math.PI / 2 : -Math.PI / 2));
+            graphicsExtractor.pose().pushMatrix();
+            graphicsExtractor.pose().translate(stripX + STRIP_WIDTH / 2f, top + tabLength / 2f);
+            // Rotated so the text runs along the screen edge, and the tab's open side faces away from the options
+            graphicsExtractor.pose().rotate((float) (rightSide ? -Math.PI / 2 : Math.PI / 2));
             Identifier tab = isSelected ? (hover ? TAB_SELECTED_HIGHLIGHTED : TAB_SELECTED) : (hover ? TAB_HIGHLIGHTED : TAB);
-            g.blitSprite(RenderPipelines.GUI_TEXTURED, tab, -h / 2, -STRIP_W / 2, h, STRIP_W);
-            g.text(font, labels[i], -font.width(labels[i]) / 2, -font.lineHeight / 2 + 1, color, true);
-            g.pose().popMatrix();
+            // STRIP_WIDTH is used for height here due to my *fancy* rotated mess
+            graphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, tab, -tabLength / 2, -STRIP_WIDTH / 2, tabLength, STRIP_WIDTH);
+            graphicsExtractor.text(font, labels[i], -font.width(labels[i]) / 2, -font.lineHeight / 2 + 1, color, true);
+            graphicsExtractor.pose().popMatrix();
         }
 
         if (!expanded) return;
 
         // content
         int contentX = contentX(left), w = width();
-        g.fill(contentX, 0, contentX + w, screen.height, BG);
+        graphicsExtractor.fill(contentX, 0, contentX + w, screen.height, BG);
         int edgeX = rightSide ? contentX + w - 1 : contentX;
-        g.fill(edgeX, 0, edgeX + 1, screen.height, 0xFF000000);
+        graphicsExtractor.fill(edgeX, 0, edgeX + 1, screen.height, 0xFF000000);
 
         boolean enabled = HUDConfig.isEnabled(selected);
-        g.text(font, TAB_NAMES[selected], contentX + ROW_INSET, 5, enabled ? 0xFFFFFFFF : TEXT_DISABLED, true);
+        graphicsExtractor.text(font, TAB_NAMES[selected], contentX + ROW_INSET, 5, enabled ? 0xFFFFFFFF : TEXT_DISABLED, true);
         if (!enabled) {
             String off = "(disabled)";
-            g.text(font, off, contentX + w - ROW_INSET - font.width(off), 5, TEXT_DISABLED, false);
+            graphicsExtractor.text(font, off, contentX + w - ROW_INSET - font.width(off), 5, TEXT_DISABLED, false);
         }
-        g.fill(contentX + ROW_INSET, HEADER_H - 3, contentX + w - ROW_INSET, HEADER_H - 2, 0xFF404040);
+        graphicsExtractor.fill(contentX + ROW_INSET, HEADER_H - 3, contentX + w - ROW_INSET, HEADER_H - 2, 0xFF404040);
 
         List<Row> list = rows.get(selected);
         scroll[selected] = Math.clamp(scroll[selected], 0, maxScroll(selected));
@@ -259,7 +262,7 @@ public class LayoutPanel {
         for (int r = scroll[selected]; r < list.size(); r++) {
             Row row = list.get(r);
             if (y + row.height() > viewBottom()) break;
-            row.render(g, x, y, rw, interactive ? mouseX : -1, interactive ? mouseY : -1, enabled);
+            row.render(graphicsExtractor, x, y, rw, interactive ? mouseX : -1, interactive ? mouseY : -1, enabled);
             y += row.height();
         }
 
@@ -270,19 +273,19 @@ public class LayoutPanel {
             int thumbH = Math.max(10, trackH * (list.size() - max) / list.size());
             int thumbY = trackTop + (trackH - thumbH) * scroll[selected] / max;
             int barX = rightSide ? contentX : contentX + w - SCROLLER_W - 1;
-            g.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER_BACKGROUND, barX, trackTop, SCROLLER_W, trackH);
-            g.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER, barX, thumbY, SCROLLER_W, thumbH);
+            graphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER_BACKGROUND, barX, trackTop, SCROLLER_W, trackH);
+            graphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, SCROLLER, barX, thumbY, SCROLLER_W, thumbH);
         }
 
         // reset button
         int ry = resetY();
         boolean hoverReset = interactive && mouseX >= x && mouseX < x + rw && mouseY >= ry && mouseY < ry + RESET_H;
-        drawButton(g, x, ry, rw, RESET_H, "Reset Position", hoverReset, 0xFFFFFFFF);
+        drawButton(graphicsExtractor, x, ry, rw, RESET_H, "Reset Position", hoverReset, 0xFFFFFFFF);
 
         // resize handle
         int handleX = handleX(left);
         boolean hoverHandle = resizing || (!confirmingReset && mouseX >= handleX && mouseX < handleX + HANDLE_W && mouseY >= 0 && mouseY < screen.height);
-        if (hoverHandle) g.fill(handleX, 0, handleX + HANDLE_W, screen.height, 0x60FFFFFF);
+        if (hoverHandle) graphicsExtractor.fill(handleX, 0, handleX + HANDLE_W, screen.height, 0x60FFFFFF);
     }
 
     /// The edge of the content that faces the middle of the screen
@@ -355,7 +358,7 @@ public class LayoutPanel {
 
         int left = left();
         int stripX = stripX(left);
-        if (mx >= stripX && mx < stripX + STRIP_W) {
+        if (mx >= stripX && mx < stripX + STRIP_WIDTH) {
             if (button != LEFT_CLICK) return true;
             if (my < TOGGLE_H) {
                 expanded = !expanded;
