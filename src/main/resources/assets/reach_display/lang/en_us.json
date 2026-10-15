@@ -1,4 +1,8 @@
 {
+  "key.category.reach_display.reach_display": "Reach Display",
+  "key.reach_display.open_hud_configurator": "Open HUD Configurator",
+  "key.reach_display.open_menu": "Open Reach Display Menu",
+
   "reach_display.midnightconfig.title": "Reach Display",
   "reach_display.midnightconfig.other": "All the appearance options for displays are in their corresponding tabs",
 

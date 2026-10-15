@@ -1,6 +1,7 @@
 package net.blueskiez77.reach_display;
 
 import net.blueskiez77.reach_display.config.ConfigManager;
+import net.blueskiez77.reach_display.config.Hotkeys;
 import net.blueskiez77.reach_display.utils.HUDRenderer;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
@@ -26,5 +27,6 @@ public class ReachDisplay implements ClientModInitializer {
 
         ConfigManager.load();
         HUDRenderer.register();
+        Hotkeys.register();
     }
 }
