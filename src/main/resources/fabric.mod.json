@@ -26,7 +26,7 @@
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric-api": "*",
-    "minecraft": ">=26.3",
-    "yet_another_config_lib_v3": ">=3-3.9.5+26.2-fabric"
+    "minecraft": "${minecraft_version}",
+    "yet_another_config_lib_v3": ">=${yacl_version}"
   }
 }
