@@ -51,7 +51,8 @@ public class SpearHitTracker {
 
     /// Where the spear's ray (as in ProjectileUtil.getHitEntitiesAlong) meets the target's hitbox, for RAY_HIT_POINT
     private static Vec3 rayHitPoint(Player player, Entity target, ItemStack weapon) {
-        AttackRange range = player.getAttackRangeWith(weapon);
+        AttackRange range = weapon.get(DataComponents.ATTACK_RANGE);
+        if (range == null) range = AttackRange.defaultFor(player);
         Vec3 eyePos = player.getEyePosition();
         Vec3 end = eyePos.add(player.getLookAngle().scale(range.effectiveMaxRange(player)));
         return target.getBoundingBox().inflate(range.hitboxMargin()).clip(eyePos, end).orElse(null);

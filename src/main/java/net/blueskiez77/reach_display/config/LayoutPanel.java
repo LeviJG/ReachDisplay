@@ -3,7 +3,7 @@ package net.blueskiez77.reach_display.config;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -209,7 +209,7 @@ public class LayoutPanel {
 
     /* ----- rendering ----- */
 
-    public void render(GuiGraphicsExtractor graphicsExtractor, int mouseX, int mouseY) {
+    public void render(GuiGraphics graphicsExtractor, int mouseX, int mouseY) {
         long now = System.nanoTime();
         float step = (now - lastFrameNanos) / 1_000_000f / SLIDE_MS;
         lastFrameNanos = now;
@@ -243,7 +243,7 @@ public class LayoutPanel {
             Identifier tab = isSelected ? (hover ? TAB_SELECTED_HIGHLIGHTED : TAB_SELECTED) : (hover ? TAB_HIGHLIGHTED : TAB);
             // STRIP_WIDTH is used for height here due to my *fancy* rotated mess
             graphicsExtractor.blitSprite(RenderPipelines.GUI_TEXTURED, tab, -tabLength / 2, -STRIP_WIDTH / 2, tabLength, STRIP_WIDTH);
-            graphicsExtractor.text(font, labels[i], -font.width(labels[i]) / 2, -font.lineHeight / 2 + 1, color, true);
+            graphicsExtractor.drawString(font, labels[i], -font.width(labels[i]) / 2, -font.lineHeight / 2 + 1, color, true);
             graphicsExtractor.pose().popMatrix();
         }
 
@@ -257,7 +257,7 @@ public class LayoutPanel {
 
         boolean enabled = HUDConfig.isEnabled(selected);
         String title = shorten(TAB_NAMES[selected], w - ROW_INSET * 2);     // "Average Hit Distance" can be wider than the menu
-        graphicsExtractor.text(font, title, contentX + ROW_INSET, 5, enabled ? 0xFFFFFFFF : TEXT_DISABLED, true);
+        graphicsExtractor.drawString(font, title, contentX + ROW_INSET, 5, enabled ? 0xFFFFFFFF : TEXT_DISABLED, true);
         graphicsExtractor.fill(contentX + ROW_INSET, HEADER_H - 3, contentX + w - ROW_INSET, HEADER_H - 2, 0xFF404040);
 
         List<Row> list = rows.get(selected);
@@ -300,7 +300,7 @@ public class LayoutPanel {
     }
 
     /// Drawn after everything else, so the popup covers the HUD boxes too
-    public void renderPopup(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    public void renderPopup(GuiGraphics g, int mouseX, int mouseY) {
         if (!confirmingReset) return;
         Font font = font();
         g.fill(0, 0, screen.width, screen.height, 0x90000000);
@@ -310,8 +310,8 @@ public class LayoutPanel {
         int pw = Math.clamp(Math.max(font.width(line1), font.width(line2)) + 20, 160, screen.width - 20);
         int ph = 62, px = (screen.width - pw) / 2, py = (screen.height - ph) / 2;
         g.blitSprite(RenderPipelines.GUI_TEXTURED, POPUP_BACKGROUND, px, py, pw, ph);
-        g.text(font, line1, px + (pw - font.width(line1)) / 2, py + 8, TEXT, false);
-        g.text(font, line2, px + (pw - font.width(line2)) / 2, py + 19, 0xFFFFFFFF, false);
+        g.drawString(font, line1, px + (pw - font.width(line1)) / 2, py + 8, TEXT, false);
+        g.drawString(font, line2, px + (pw - font.width(line2)) / 2, py + 19, 0xFFFFFFFF, false);
 
         int bw = (pw - 30) / 2, by = py + ph - 28;
         drawButton(g, px + 10, by, bw, 20, "Reset", inside(mouseX, mouseY, px + 10, by, bw, 20), RED_TEXT);
@@ -332,19 +332,19 @@ public class LayoutPanel {
     }
 
     /// Inactive buttons use the darker disabled sprite and never highlight
-    private static void drawButtonRect(GuiGraphicsExtractor g, int x, int y, int w, int h, boolean hover, boolean active) {
+    private static void drawButtonRect(GuiGraphics g, int x, int y, int w, int h, boolean hover, boolean active) {
         Identifier sprite = !active ? BUTTON_DISABLED : hover ? BUTTON_HIGHLIGHTED : BUTTON;
         g.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, w, h);
     }
 
-    private static void drawButton(GuiGraphicsExtractor g, int x, int y, int w, int h, String text, boolean hover, int textColor) {
+    private static void drawButton(GuiGraphics g, int x, int y, int w, int h, String text, boolean hover, int textColor) {
         drawButton(g, x, y, w, h, text, hover, true, textColor);
     }
 
-    private static void drawButton(GuiGraphicsExtractor g, int x, int y, int w, int h, String text, boolean hover, boolean active, int textColor) {
+    private static void drawButton(GuiGraphics g, int x, int y, int w, int h, String text, boolean hover, boolean active, int textColor) {
         Font font = font();
         drawButtonRect(g, x, y, w, h, hover, active);
-        g.text(font, text, x + (w - font.width(text)) / 2 + 1, y + (h - font.lineHeight) / 2 + 1, active ? textColor : TEXT_DISABLED, true);
+        g.drawString(font, text, x + (w - font.width(text)) / 2 + 1, y + (h - font.lineHeight) / 2 + 1, active ? textColor : TEXT_DISABLED, true);
     }
 
     /// Cuts text down with "..." until it fits, like YACL does with long option names
@@ -435,17 +435,11 @@ public class LayoutPanel {
     private void setFocusedColor(ColorRow row) {
         if (row == focusedColor) return;
         focusedColor = row;
-        setTextInputFocus(row != null);
     }
 
     /// Unfocuses the hex field, e.g. when the screen closes
     public void clearFocus() {
         setFocusedColor(null);
-    }
-
-    /// Minecraft 26.3 only delivers typed characters while a text field has told it it's focused (YACL does the same)
-    private void setTextInputFocus(boolean focused) {
-        Minecraft.getInstance().onTextInputFocusChange(screen, focused);
     }
 
     /// Keys go to the focused hex field. Returns true if it used the key, so the screen must ignore it.
@@ -484,7 +478,7 @@ public class LayoutPanel {
 
         abstract int height();
 
-        abstract void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled);
+        abstract void render(GuiGraphics g, int x, int y, int w, int mouseX, int mouseY, boolean enabled);
 
         boolean click(int x, int y, int w, double mx, double my, int button) {
             return false;
@@ -518,7 +512,7 @@ public class LayoutPanel {
         @Override int height() { return BUTTON_H + 2; }
 
         @Override
-        void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
+        void render(GuiGraphics g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             drawButton(g, x, y, w, BUTTON_H, shorten(name, w - PAD * 2), inside(mouseX, mouseY, x, y, w, BUTTON_H), enabled, 0xFFFFFFFF);
         }
 
@@ -542,14 +536,14 @@ public class LayoutPanel {
         @Override int height() { return BUTTON_H + 2; }
 
         @Override
-        void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
+        void render(GuiGraphics g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
             drawButtonRect(g, x, y, w, BUTTON_H, inside(mouseX, mouseY, x, y, w, BUTTON_H), enabled);
             boolean on = get.getAsBoolean();
             String value = on ? "ON" : "OFF";
             int valueX = x + w - PAD - font.width(value);
-            g.text(font, shorten(name, valueX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
-            g.text(font, value, valueX, textY(y), valueColor(enabled, on ? GREEN_TEXT : RED_TEXT), true);
+            g.drawString(font, shorten(name, valueX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
+            g.drawString(font, value, valueX, textY(y), valueColor(enabled, on ? GREEN_TEXT : RED_TEXT), true);
         }
 
         @Override
@@ -585,7 +579,7 @@ public class LayoutPanel {
         private static int trackX(int x, int w)  { return x + w - PAD - THUMB_W / 2 - trackW(w); }
 
         @Override
-        void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
+        void render(GuiGraphics g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
             boolean hovered = dragging || inside(mouseX, mouseY, x, y, w, BUTTON_H);
             drawButtonRect(g, x, y, w, BUTTON_H, hovered, enabled);
@@ -604,8 +598,8 @@ public class LayoutPanel {
                 valueRight = trackX - 6;
             }
             int valueX = valueRight - font.width(text);
-            g.text(font, shorten(name, valueX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
-            g.text(font, text, valueX, textY(y), valueColor(enabled, 0xFFFFFFFF), true);
+            g.drawString(font, shorten(name, valueX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
+            g.drawString(font, text, valueX, textY(y), valueColor(enabled, 0xFFFFFFFF), true);
         }
 
         @Override
@@ -663,7 +657,7 @@ public class LayoutPanel {
         }
 
         @Override
-        void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
+        void render(GuiGraphics g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
             drawButtonRect(g, x, y, w, BUTTON_H, inside(mouseX, mouseY, x, y, w, BUTTON_H) || focused(), enabled);
             x += PAD;           // the rest is laid out inside the button's padding
@@ -673,7 +667,7 @@ public class LayoutPanel {
             int xLimit = x + w, centerY = y + BUTTON_H / 2;
             boolean hovered = inside(mouseX, mouseY, x - PAD, y, w + PAD * 2, BUTTON_H) || focused();
             int textY = textY(y);
-            g.text(font, name, x, textY, nameColor(enabled), true);
+            g.drawString(font, name, x, textY, nameColor(enabled), true);
 
             String text = hex();
             int textX = xLimit - font.width(text);
@@ -715,16 +709,16 @@ public class LayoutPanel {
             outline(g, previewX, previewY, previewSize, previewSize, overPreview ? highlightedOutlineColor(rgb) : 0xFF000000);
         }
 
-        private static void drawColoredHex(GuiGraphicsExtractor g, Font font, String text, int x, int y) {
+        private static void drawColoredHex(GuiGraphics g, Font font, String text, int x, int y) {
             int[] colors = { 0xFFFFFFFF, RED, GREEN, BLUE };
             String[] parts = { text.substring(0, 1), text.substring(1, 3), text.substring(3, 5), text.substring(5, 7) };
             for (int i = 0; i < parts.length; i++) {
-                g.text(font, parts[i], x, y, colors[i], true);
+                g.drawString(font, parts[i], x, y, colors[i], true);
                 x += font.width(parts[i]);
             }
         }
 
-        private static void outline(GuiGraphicsExtractor g, int x, int y, int w, int h, int color) {
+        private static void outline(GuiGraphics g, int x, int y, int w, int h, int color) {
             g.fill(x, y, x + w, y + 1, color);
             g.fill(x, y + h - 1, x + w, y + h, color);
             g.fill(x, y + 1, x + 1, y + h - 1, color);
@@ -863,16 +857,16 @@ public class LayoutPanel {
         private static int buttonY(int y) { return y + (BUTTON_H - BUTTON) / 2; }
 
         @Override
-        void render(GuiGraphicsExtractor g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
+        void render(GuiGraphics g, int x, int y, int w, int mouseX, int mouseY, boolean enabled) {
             Font font = font();
             drawButtonRect(g, x, y, w, BUTTON_H, inside(mouseX, mouseY, x, y, w, BUTTON_H), enabled);
             String value = String.valueOf(get.getAsInt());
             int valueW = Math.max(font.width("00"), font.width(value)) + 5;
             int plusX = x + w - 3 - BUTTON, valueX = plusX - valueW, minusX = valueX - BUTTON, by = buttonY(y);
-            g.text(font, shorten(name, minusX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
+            g.drawString(font, shorten(name, minusX - x - PAD * 2), x + PAD, textY(y), nameColor(enabled), true);
             drawButton(g, minusX, by, BUTTON, BUTTON, "-", inside(mouseX, mouseY, minusX, by, BUTTON, BUTTON), enabled, 0xFFFFFFFF);
             drawButton(g, plusX, by, BUTTON, BUTTON, "+", inside(mouseX, mouseY, plusX, by, BUTTON, BUTTON), enabled, 0xFFFFFFFF);
-            g.text(font, value, valueX + (valueW - font.width(value)) / 2, textY(y), valueColor(enabled, 0xFFFFFFFF), true);
+            g.drawString(font, value, valueX + (valueW - font.width(value)) / 2, textY(y), valueColor(enabled, 0xFFFFFFFF), true);
         }
 
         @Override

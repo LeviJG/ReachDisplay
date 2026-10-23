@@ -2,7 +2,7 @@ package net.blueskiez77.reach_display.utils;
 
 import net.blueskiez77.reach_display.config.DisplayConfig;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import org.jetbrains.annotations.UnknownNullability;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -26,7 +26,7 @@ public class CustomRender {
     public static final int MARGIN = 4, PADDING = 2;
 
     /// textClass values mapping: 0 = distance; 1 = hitDistance; 2 = averageHitDistance
-    public static void renderText(Minecraft minecraft, @UnknownNullability GuiGraphicsExtractor context, double displayDouble, int displayDecimalPlaces, int textClass, boolean shadow, float scale, double xOffset, double yOffset){
+    public static void renderText(Minecraft minecraft, @UnknownNullability GuiGraphics context, double displayDouble, int displayDecimalPlaces, int textClass, boolean shadow, float scale, double xOffset, double yOffset){
         String roundedDisplayDouble = getRoundedDouble(displayDouble, displayDecimalPlaces);
 
         int color = getARGBColor(textClass);
@@ -64,11 +64,11 @@ public class CustomRender {
         return MARGIN + (float)(yOffset * availY);
     }
 
-    public static void drawScaledText(GuiGraphicsExtractor context, String text, float x, float y, float scale, int color, boolean shadow) {
+    public static void drawScaledText(GuiGraphics context, String text, float x, float y, float scale, int color, boolean shadow) {
         context.pose().pushMatrix();
         context.pose().scale(scale, scale);
         float invScale = 1.0f / scale;
-        context.text(getFont(), text, (int) (x * invScale), (int) (y * invScale), color, shadow);
+        context.drawString(getFont(), text, (int) (x * invScale), (int) (y * invScale), color, shadow);
         context.pose().popMatrix();
     }
 

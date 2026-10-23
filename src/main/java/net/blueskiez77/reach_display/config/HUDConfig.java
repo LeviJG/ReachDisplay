@@ -6,7 +6,7 @@ import net.blueskiez77.reach_display.utils.ReachCalculation;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.isxander.yacl3.gui.YACLScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.CharacterEvent;
 import net.minecraft.client.input.KeyEvent;
@@ -163,10 +163,10 @@ public class HUDConfig extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
+    public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
         updateLabels();
         g.fill(0, 0, this.width, this.height, 0x30101010);
-        super.extractRenderState(g, mouseX, mouseY, partial);
+        super.render(g, mouseX, mouseY, partial);
 
         boolean popup = panel.isConfirmingReset();
         // The selected box is drawn last so it stays on top of any box it overlaps

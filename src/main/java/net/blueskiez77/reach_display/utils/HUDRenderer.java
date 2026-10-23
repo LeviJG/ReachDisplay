@@ -5,7 +5,7 @@ import net.blueskiez77.reach_display.config.DisplayConfig;
 import net.blueskiez77.reach_display.data.SharedData;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -23,7 +23,7 @@ public class HUDRenderer {
         );
     }
 
-    private static void render(GuiGraphicsExtractor graphics) {
+    private static void render(GuiGraphics graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         DisplayConfig displayConfig = DisplayConfig.INSTANCE;
         if (!displayConfig.enabled) return;

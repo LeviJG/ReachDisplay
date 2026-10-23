@@ -3,7 +3,7 @@ package net.blueskiez77.reach_display.config;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.blueskiez77.reach_display.ReachDisplay;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
 
@@ -13,11 +13,11 @@ public class Hotkeys {
             KeyMapping.Category.register(Identifier.fromNamespaceAndPath(ReachDisplay.MOD_ID, "reach_display"));
 
     // G by default
-    private static final KeyMapping OPEN_HUD_CONFIGURATOR = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+    private static final KeyMapping OPEN_HUD_CONFIGURATOR = KeyBindingHelper.registerKeyBinding(new KeyMapping(
             "key.reach_display.open_hud_configurator", InputConstants.Type.KEYSYM, InputConstants.KEY_G, CATEGORY));
 
     // Unbound by default; the HUD configurator's "More Options" button already leads here
-    private static final KeyMapping OPEN_MENU = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+    private static final KeyMapping OPEN_MENU = KeyBindingHelper.registerKeyBinding(new KeyMapping(
             "key.reach_display.open_menu", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY));
 
     public static void register() {
