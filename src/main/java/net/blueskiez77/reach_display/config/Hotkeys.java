@@ -6,7 +6,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
-import org.lwjgl.sdl.SDLScancode;
 
 /// Rebindable hotkeys (Options > Controls > Key Binds > Reach Display)
 public class Hotkeys {
@@ -15,11 +14,11 @@ public class Hotkeys {
 
     // G by default
     private static final KeyMapping OPEN_HUD_CONFIGURATOR = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-            "key.reach_display.open_hud_configurator", InputConstants.Type.KEYBOARD, SDLScancode.SDL_SCANCODE_G, CATEGORY));
+            "key.reach_display.open_hud_configurator", InputConstants.Type.KEYSYM, InputConstants.KEY_G, CATEGORY));
 
     // Unbound by default; the HUD configurator's "More Options" button already leads here
     private static final KeyMapping OPEN_MENU = KeyMappingHelper.registerKeyMapping(new KeyMapping(
-            "key.reach_display.open_menu", InputConstants.Type.KEYBOARD, InputConstants.UNKNOWN.getValue(), CATEGORY));
+            "key.reach_display.open_menu", InputConstants.Type.KEYSYM, InputConstants.UNKNOWN.getValue(), CATEGORY));
 
     public static void register() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
